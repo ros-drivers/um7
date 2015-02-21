@@ -312,7 +312,7 @@ ROS_INFO("cov %s", cov);
 ROS_INFO("p1 = %p %s",p,p);
   for (int iter = 0; iter < 9; iter++)
   {
-ROS_INFO("p = %p %s",p,p);
+ROS_INFO("p = %p %s", p, p);
     if (p) covar[iter] = atof(p);                // covar[] is global var
     else  covar[iter] = 0.0;
     p = strtok_r(NULL, " ", &ptr1);              // point to next value (nil if none)
