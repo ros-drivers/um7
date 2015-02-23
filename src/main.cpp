@@ -306,13 +306,10 @@ int main(int argc, char **argv)
 
   ros::param::param<std::string>("~covariance", covariance, "0 0 0 0 0 0 0 0 0");
   snprintf(cov, sizeof(cov), "%s", covariance.c_str());
-ROS_INFO("cov %s", cov);
 
   char* p = strtok_r(cov, " ", &ptr1);           // point to first value
-ROS_INFO("p1 = %p %s",p,p);
   for (int iter = 0; iter < 9; iter++)
   {
-ROS_INFO("p = %p %s", p, p);
     if (p) covar[iter] = atof(p);                // covar[] is global var
     else  covar[iter] = 0.0;
     p = strtok_r(NULL, " ", &ptr1);              // point to next value (nil if none)
