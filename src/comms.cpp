@@ -32,16 +32,16 @@
  *
  */
 
-#include "um7/comms.h"
+#include <um7/comms.h>
 
 #include <arpa/inet.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
 #include <string>
 
-#include "ros/console.h"
-#include "serial/serial.h"
-#include "um7/registers.h"
+#include <ros/console.h>
+#include <serial/serial.h>
+#include <um7/registers.h>
 
 namespace um7
 {

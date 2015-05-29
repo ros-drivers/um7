@@ -35,15 +35,16 @@
  *
  */
 
-#include "geometry_msgs/Vector3Stamped.h"
-#include "ros/ros.h"
-#include "sensor_msgs/Imu.h"
-#include "serial/serial.h"            // must install serial library from apt-get
-#include "std_msgs/Float32.h"
-#include "std_msgs/Header.h"
-#include "um7/comms.h"
-#include "um7/registers.h"
-#include "um7/Reset.h"
+#include <geometry_msgs/Vector3Stamped.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <ros/ros.h>
+#include <sensor_msgs/Imu.h>
+#include <serial/serial.h>            // must install serial library from apt-get
+#include <std_msgs/Float32.h>
+#include <std_msgs/Header.h>
+#include <um7/comms.h>
+#include <um7/registers.h>
+#include <um7/Reset.h>
 #include <string>
 
 float covar[9];     // orientation covariance values
@@ -199,10 +200,16 @@ bool handleResetService(um7::Comms* sensor,
  */
 void publishMsgs(um7::Registers& r, ros::NodeHandle* n, const std_msgs::Header& header)
 {
-  static ros::Publisher imu_pub = n->advertise<sensor_msgs::Imu>("imu/data", 1, false);
-  static ros::Publisher mag_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/mag", 1, false);
-  static ros::Publisher rpy_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/rpy", 1, false);
-  static ros::Publisher temp_pub = n->advertise<std_msgs::Float32>("imu/temperature", 1, false);
+  static ros::Publisher imu_pub = n->advertise<sensor_msgs::Imu>("imu/data", 1, true);
+  static ros::Publisher mag_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/mag", 1, true);
+  static ros::Publisher rpy_pub = n->advertise<geometry_msgs::Vector3Stamped>("imu/rpy", 1, true);
+  static ros::Publisher pose_pub = n->advertise<geometry_msgs::PoseStamped>("imu/pose", 1, true);
+  static ros::Publisher temp_pub = n->advertise<std_msgs::Float32>("imu/temperature", 1, true);
+
+  double qx = r.quat.get_scaled(1);
+  double qy = -r.quat.get_scaled(2);
+  double qz = -r.quat.get_scaled(3);
+  double qw = r.quat.get_scaled(0);
 
   if (imu_pub.getNumSubscribers() > 0)
   {
@@ -210,10 +217,10 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.header = header;
 
     // IMU outputs [w,x,y,z], convert to [x,y,z,w] & transform to ROS axes
-    imu_msg.orientation.x =  r.quat.get_scaled(1);
-    imu_msg.orientation.y = -r.quat.get_scaled(2);
-    imu_msg.orientation.z = -r.quat.get_scaled(3);
-    imu_msg.orientation.w = r.quat.get_scaled(0);
+    imu_msg.orientation.x = qx;
+    imu_msg.orientation.y = qy;
+    imu_msg.orientation.z = qz;
+    imu_msg.orientation.w = qw;
 
     // Covariance of attitude.  set to constant default or parameter values
     imu_msg.orientation_covariance[0] = covar[0];
@@ -259,6 +266,17 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     rpy_msg.vector.y = -r.euler.get_scaled(1);
     rpy_msg.vector.z = -r.euler.get_scaled(2);
     rpy_pub.publish(rpy_msg);
+  }
+
+  if (pose_pub.getNumSubscribers() > 0)
+  {
+	  geometry_msgs::PoseStamped pose_msg;
+	  pose_msg.header = header;
+	  pose_msg.pose.orientation.x = qx;
+	  pose_msg.pose.orientation.y = qy;
+	  pose_msg.pose.orientation.z = qz;
+	  pose_msg.pose.orientation.w = qw;
+	  pose_pub.publish(pose_msg);
   }
 
   // Temperature
