@@ -52,7 +52,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "um7/firmware_registers.h"
+#include <um7/firmware_registers.h>
 
 #define TO_RADIANS (M_PI / 180.0)
 #define TO_DEGREES (180.0 / M_PI)

@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(um7)
 
-find_package(catkin REQUIRED COMPONENTS roscpp serial roslint sensor_msgs 
-             message_generation)
+set(${PROJECT_NAME}_CATKIN_COMPONENTS
+    roscpp
+    serial
+    roslint
+    sensor_msgs
+    geometry_msgs
+)
+
+find_package(catkin REQUIRED COMPONENTS ${${PROJECT_NAME}_CATKIN_COMPONENTS} message_generation)
 
 add_service_files(
   FILES
@@ -13,7 +20,7 @@ generate_messages()
 
 catkin_package(
    INCLUDE_DIRS include
-   CATKIN_DEPENDS message_runtime
+   CATKIN_DEPENDS ${${PROJECT_NAME}_CATKIN_COMPONENTS} message_runtime
 )
 
 ###########
