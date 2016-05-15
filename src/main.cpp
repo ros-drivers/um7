@@ -47,6 +47,8 @@
 #include <string>
 
 float covar[9];     // orientation covariance values
+double linear_acceleration_cov; // Linear acceleration covariance
+double angular_velocity_cov; // Angular velocity covariance
 const char VERSION[10] = "0.0.2";   // um7_driver version
 
 // Don't try to be too clever. Arrival of this message triggers
@@ -180,6 +182,7 @@ void configureSensor(um7::Comms* sensor)
   bool zero_gyros;
   ros::param::param<bool>("~zero_gyros", zero_gyros, true);
   if (zero_gyros) sendCommand(sensor, r.cmd_zero_gyros, "zero gyroscopes");
+
 }
 
 
@@ -231,10 +234,18 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* n, const std_msgs::Header& 
     imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
     imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
 
+    imu_msg.angular_velocity_covariance[0] = angular_velocity_cov;
+    imu_msg.angular_velocity_covariance[4] = angular_velocity_cov;
+    imu_msg.angular_velocity_covariance[8] = angular_velocity_cov;
+
     // Linear accel.  transform to ROS axes
     imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
     imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
     imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
+
+    imu_msg.linear_acceleration_covariance[0] = linear_acceleration_cov;
+    imu_msg.linear_acceleration_covariance[4] = linear_acceleration_cov;
+    imu_msg.linear_acceleration_covariance[8] = linear_acceleration_cov;
 
     imu_pub.publish(imu_msg);
   }
@@ -314,6 +325,14 @@ int main(int argc, char **argv)
     else  covar[iter] = 0.0;
     p = strtok_r(NULL, " ", &ptr1);              // point to next value (nil if none)
   }
+
+  double linear_acceleration_stdev, angular_velocity_stdev;
+
+  ros::param::param<double>("~linear_acceleration_stdev", linear_acceleration_stdev, 0.06);
+  ros::param::param<double>("~angular_velocity_stdev", angular_velocity_stdev, 0.005);
+
+  linear_acceleration_cov = linear_acceleration_stdev * linear_acceleration_stdev;
+  angular_velocity_cov = angular_velocity_stdev * angular_velocity_stdev;
 
   // Real Time Loop
   bool first_failure = true;
