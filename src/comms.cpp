@@ -1,11 +1,11 @@
 /**
  *
  *  \file
- *  \brief      Implementation of Comms class methods to handle reading and 
+ *  \brief      Implementation of Comms class methods to handle reading and
  *              writing to the UM7 serial interface.
  *  \author     Mike Purvis <mpurvis@clearpathrobotics.com>
  *  \copyright  Copyright (c) 2013, Clearpath Robotics, Inc.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -16,7 +16,7 @@
  *     * Neither the name of Clearpath Robotics, Inc. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27,8 +27,8 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * Please send comments, questions, or patches to code@clearpathrobotics.com 
+ *
+ * Please send comments, questions, or patches to code@clearpathrobotics.com
  *
  */
 
@@ -115,7 +115,7 @@ int16_t Comms::receive(Registers* registers = NULL)
     }
     else
     {
-      ROS_DEBUG("Received packet %02x without data.", address);
+      ROS_INFO("Received packet %02x without data.", address);
     }
 
     // Compare computed checksum with transmitted value.
