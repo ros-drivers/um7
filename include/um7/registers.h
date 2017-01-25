@@ -67,7 +67,8 @@ inline void memcpy_network(void* dest, void* src, size_t count)
 #if __BYTE_ORDER == __LITTLE_ENDIAN
   uint8_t* d = reinterpret_cast<uint8_t*>(dest);
   uint8_t* s = reinterpret_cast<uint8_t*>(src);
-  for (uint8_t i = 0; i < count; i++) {
+  for (uint8_t i = 0; i < count; i++)
+  {
     d[i] = s[count - (i+1)];
   }
 #else
@@ -198,7 +199,8 @@ class Registers
 
     void write_raw(uint8_t register_index, std::string data)
     {
-      if ((register_index - 1) + (data.length()/4 - 1) >= NUM_REGISTERS) {
+      if ((register_index - 1) + (data.length()/4 - 1) >= NUM_REGISTERS)
+      {
         throw std::range_error("Index and length write beyond boundaries of register array.");
       }
       memcpy(&raw_[register_index], data.c_str(), data.length());
