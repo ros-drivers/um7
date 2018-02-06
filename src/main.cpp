@@ -95,16 +95,54 @@ void sendCommand(um7::Comms* sensor, const um7::Accessor<RegT>& reg, std::string
   }
 }
 
+/**
+ * Function maps the baud rate value to a value for the baud rate register.
+ */
+uint32_t lookUpBaudRate(int32_t rate)
+{
+  switch (rate)
+  {
+    case 9600:
+      return BAUD_9600;
+    case 14400:
+      return BAUD_14400;
+    case 19200:
+      return BAUD_19200;
+    case 38400:
+      return BAUD_38400;
+    case 57600:
+      return BAUD_57600;
+    case 115200:
+      return BAUD_115200;
+    case 128000:
+      return BAUD_128000;
+    case 153600:
+      return BAUD_153600;
+    case 230400:
+      return BAUD_230400;
+    case 256000:
+      return BAUD_256000;
+    case 460800:
+      return BAUD_460800;
+    case 921600:
+      return BAUD_921600;
+    default:
+      ROS_WARN("Unsupported baud rate of %d, defaulting to 115200", rate);
+      return BAUD_115200;
+  }
+}
+
 
 /**
  * Send configuration messages to the UM7, critically, to turn on the value outputs
  * which we require, and inject necessary configuration parameters.
  */
-void configureSensor(um7::Comms* sensor, ros::NodeHandle *private_nh)
+void configureSensor(um7::Comms* sensor, ros::NodeHandle* private_nh)
 {
   um7::Registers r;
-
-  uint32_t comm_reg = (BAUD_115200 << COM_BAUD_START);
+  int32_t baud;
+  private_nh->param<int32_t>("baud", baud, 115200);
+  uint32_t comm_reg = ((lookUpBaudRate(baud)) << COM_BAUD_START);
   r.communication.set(0, comm_reg);
   if (!sensor->sendWaitAck(r.comrate2))
   {
