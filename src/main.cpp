@@ -218,10 +218,10 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
     if (tf_ned_to_enu)
     {
       // world frame
-      imu_msg.orientation.w =  r.quat.get_scaled(2);
+      imu_msg.orientation.w =  r.quat.get_scaled(0);
       imu_msg.orientation.x =  r.quat.get_scaled(1);
-      imu_msg.orientation.y = -r.quat.get_scaled(3);
-      imu_msg.orientation.z =  r.quat.get_scaled(0);
+      imu_msg.orientation.y = -r.quat.get_scaled(2);
+      imu_msg.orientation.z = -r.quat.get_scaled(3);
 
       // body-fixed frame
       imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
