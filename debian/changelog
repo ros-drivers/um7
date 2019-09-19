@@ -1,0 +1,5 @@
+ros-melodic-um7 (0.0.4-bionic1) bionic; urgency=medium
+
+  * Initial release (Closes: #1198)
+
+ -- nick black <dankamongmen@gmail.com>  Wed, 18 Sep 2019 21:56:40 -0400

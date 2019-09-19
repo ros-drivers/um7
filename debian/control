@@ -1,0 +1,19 @@
+Source: ros-melodic-um7
+Section: misc
+Priority: optional
+Maintainer: nick black <dankamongmen@gmail.com>
+Build-Depends: debhelper-compat (= 12), cmake
+Standards-Version: 4.4.0
+Homepage: https://www.pololu.com/product/2764
+Vcs-Browser: https://github.com/Greenzie/um7
+Vcs-Git: https://github.com/Greenzie/um7.git
+
+Package: ros-melodic-um7
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: ROS driver for the UM7 IMD
+ ROS driver for the CH Robotics UM7 inertial measurement device.
+ Supports standard data and mag topics as well as providing
+ temperature and rpy outputs.
+ .
+ See the ROS wiki for details: http://wiki.ros.org/um7
