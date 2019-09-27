@@ -37,6 +37,7 @@
 #include "geometry_msgs/Vector3Stamped.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Imu.h"
+#include "sensor_msgs/MagneticField.h"
 #include "serial/serial.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Header.h"
@@ -204,10 +205,19 @@ bool handleResetService(um7::Comms* sensor,
  * Uses the register accessors to grab data from the IMU, and populate
  * the ROS messages which are output.
  */
-void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& imu_msg, bool tf_ned_to_enu)
+void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& imu_msg,
+    bool tf_ned_to_enu, bool use_magnetic_field_msg)
 {
   static ros::Publisher imu_pub = imu_nh->advertise<sensor_msgs::Imu>("data", 1, false);
-  static ros::Publisher mag_pub = imu_nh->advertise<geometry_msgs::Vector3Stamped>("mag", 1, false);
+  static ros::Publisher mag_pub;
+  if (use_magnetic_field_msg)
+  {
+    ros::Publisher mag_pub = imu_nh->advertise<sensor_msgs::MagneticField>("mag", 1, false);
+  }
+  else
+  {
+    ros::Publisher mag_pub = imu_nh->advertise<geometry_msgs::Vector3Stamped>("mag", 1, false);
+  }
   static ros::Publisher rpy_pub = imu_nh->advertise<geometry_msgs::Vector3Stamped>("rpy", 1, false);
   static ros::Publisher temp_pub = imu_nh->advertise<std_msgs::Float32>("temperature", 1, false);
 
@@ -255,24 +265,46 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
   // Magnetometer.  transform to ROS axes
   if (mag_pub.getNumSubscribers() > 0)
   {
-    geometry_msgs::Vector3Stamped mag_msg;
-    mag_msg.header = imu_msg.header;
-
-    if (tf_ned_to_enu)
+    if (use_magnetic_field_msg)
     {
-      // world frame
-      mag_msg.vector.x =  r.mag.get_scaled(1);
-      mag_msg.vector.y =  r.mag.get_scaled(0);
-      mag_msg.vector.z = -r.mag.get_scaled(2);
+      sensor_msgs::MagneticField mag_msg;
+      mag_msg.header = imu_msg.header;
+
+      if (tf_ned_to_enu)
+      {
+        mag_msg.magnetic_field.x = r.mag.get_scaled(1);
+        mag_msg.magnetic_field.y = r.mag.get_scaled(0);
+        mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
+      }
+      else
+      {
+        mag_msg.magnetic_field.x = r.mag.get_scaled(0);
+        mag_msg.magnetic_field.y = r.mag.get_scaled(1);
+        mag_msg.magnetic_field.z = r.mag.get_scaled(2);
+      }
+
+      mag_pub.publish(mag_msg);
     }
     else
     {
-      mag_msg.vector.x = r.mag.get_scaled(0);
-      mag_msg.vector.y = r.mag.get_scaled(1);
-      mag_msg.vector.z = r.mag.get_scaled(2);
-    }
+      geometry_msgs::Vector3Stamped mag_msg;
+      mag_msg.header = imu_msg.header;
 
-    mag_pub.publish(mag_msg);
+      if (tf_ned_to_enu)
+      {
+        mag_msg.vector.x = r.mag.get_scaled(1);
+        mag_msg.vector.y = r.mag.get_scaled(0);
+        mag_msg.vector.z = -r.mag.get_scaled(2);
+      }
+      else
+      {
+        mag_msg.vector.x = r.mag.get_scaled(0);
+        mag_msg.vector.y = r.mag.get_scaled(1);
+        mag_msg.vector.z = r.mag.get_scaled(2);
+      }
+
+      mag_pub.publish(mag_msg);
+    }
   }
 
   // Euler attitudes.  transform to ROS axes
@@ -352,6 +384,10 @@ int main(int argc, char **argv)
   bool tf_ned_to_enu;
   private_nh.param<bool>("tf_ned_to_enu", tf_ned_to_enu, true);
 
+  // Use MagneticField message rather than Vector3Stamped.
+  bool use_magnetic_field_msg;
+  private_nh.param<bool>("use_magnetic_field_msg", use_magnetic_field_msg, false);
+
   // These values do not need to be converted
   imu_msg.linear_acceleration_covariance[0] = linear_acceleration_cov;
   imu_msg.linear_acceleration_covariance[4] = linear_acceleration_cov;
@@ -396,7 +432,7 @@ int main(int argc, char **argv)
           {
             // Triggered by arrival of final message in group.
             imu_msg.header.stamp = ros::Time::now();
-            publishMsgs(registers, &imu_nh, imu_msg, tf_ned_to_enu);
+            publishMsgs(registers, &imu_nh, imu_msg, tf_ned_to_enu, use_magnetic_field_msg);
             ros::spinOnce();
           }
         }
