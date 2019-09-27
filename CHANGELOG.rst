@@ -2,8 +2,8 @@
 Changelog for package um7
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.5 (2019-09-27)
+------------------
 * Updated to be able to use MagneticField message.
 * Added TravisCI badge to README.
 * Updated TravisCI for Kinetic and Melodic.
