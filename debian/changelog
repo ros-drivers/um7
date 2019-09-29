@@ -1,3 +1,9 @@
+ros-melodic-um7 (0.0.4-bionic2) bionic; urgency=medium
+
+  * Add deps on ros-melodic-{serial, sensor-msgs, roscpp}
+
+ -- Nick Black <dankamongmen@gmail.com>  Sun, 29 Sep 2019 09:41:02 -0400
+
 ros-melodic-um7 (0.0.4-bionic1) bionic; urgency=medium
 
   * Initial release (Closes: #1198)
