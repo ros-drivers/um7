@@ -212,11 +212,11 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
   static ros::Publisher mag_pub;
   if (use_magnetic_field_msg)
   {
-    ros::Publisher mag_pub = imu_nh->advertise<sensor_msgs::MagneticField>("mag", 1, false);
+    mag_pub = imu_nh->advertise<sensor_msgs::MagneticField>("mag", 1, false);
   }
   else
   {
-    ros::Publisher mag_pub = imu_nh->advertise<geometry_msgs::Vector3Stamped>("mag", 1, false);
+    mag_pub = imu_nh->advertise<geometry_msgs::Vector3Stamped>("mag", 1, false);
   }
   static ros::Publisher rpy_pub = imu_nh->advertise<geometry_msgs::Vector3Stamped>("rpy", 1, false);
   static ros::Publisher temp_pub = imu_nh->advertise<std_msgs::Float32>("temperature", 1, false);
