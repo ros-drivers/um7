@@ -2,8 +2,8 @@
 Changelog for package um7
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.6 (2019-10-30)
+------------------
 * Fix error of mag topic not publish
 * Contributors: Nicolas SIMON
 

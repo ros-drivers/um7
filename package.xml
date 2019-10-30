@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>um7</name>
-  <version>0.0.5</version>
+  <version>0.0.6</version>
   <description>The um7 package provides a C++ implementation of the CH Robotics serial protocol, and a
     corresponding ROS node for publishing standard ROS orientation topics from a UM7.
   </description>
