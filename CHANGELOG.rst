@@ -2,6 +2,11 @@
 Changelog for package um7
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix error of mag topic not publish
+* Contributors: Nicolas SIMON
+
 0.0.5 (2019-09-27)
 ------------------
 * Updated to be able to use MagneticField message.
