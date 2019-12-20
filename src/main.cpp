@@ -206,7 +206,7 @@ bool handleResetService(um7::Comms* sensor,
  * the ROS messages which are output.
  */
 void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& imu_msg,
-    bool tf_ned_to_enu, bool use_magnetic_field_msg)
+    bool tf_ned_to_nwu, bool use_magnetic_field_msg)
 {
   static ros::Publisher imu_pub = imu_nh->advertise<sensor_msgs::Imu>("data", 1, false);
   static ros::Publisher mag_pub;
@@ -225,7 +225,7 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
   {
     // body-fixed frame NED to ENU: (x y z)->(x -y -z) or (w x y z)->(x -y -z w)
     // world frame      NED to ENU: (x y z)->(y  x -z) or (w x y z)->(y  x -z w)
-    if (tf_ned_to_enu)
+    if (tf_ned_to_nwu)
     {
       // world frame
       imu_msg.orientation.w =  -r.quat.get_scaled(0);
@@ -270,7 +270,7 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
       sensor_msgs::MagneticField mag_msg;
       mag_msg.header = imu_msg.header;
 
-      if (tf_ned_to_enu)
+      if (tf_ned_to_nwu)
       {
         mag_msg.magnetic_field.x = r.mag.get_scaled(1);
         mag_msg.magnetic_field.y = r.mag.get_scaled(0);
@@ -290,7 +290,7 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
       geometry_msgs::Vector3Stamped mag_msg;
       mag_msg.header = imu_msg.header;
 
-      if (tf_ned_to_enu)
+      if (tf_ned_to_nwu)
       {
         mag_msg.vector.x = r.mag.get_scaled(1);
         mag_msg.vector.y = r.mag.get_scaled(0);
@@ -313,7 +313,7 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
     geometry_msgs::Vector3Stamped rpy_msg;
     rpy_msg.header = imu_msg.header;
 
-    if (tf_ned_to_enu)
+    if (tf_ned_to_nwu)
     {
       // world frame
       rpy_msg.vector.x =  r.euler.get_scaled(1);
@@ -381,8 +381,8 @@ int main(int argc, char **argv)
   double orientation_z_covar = orientation_z_stdev * orientation_z_stdev;
 
   // Enable converting from NED to ENU by default
-  bool tf_ned_to_enu;
-  private_nh.param<bool>("tf_ned_to_enu", tf_ned_to_enu, true);
+  bool tf_ned_to_nwu;
+  private_nh.param<bool>("tf_ned_to_nwu", tf_ned_to_nwu, true);
 
   // Use MagneticField message rather than Vector3Stamped.
   bool use_magnetic_field_msg;
@@ -432,7 +432,7 @@ int main(int argc, char **argv)
           {
             // Triggered by arrival of final message in group.
             imu_msg.header.stamp = ros::Time::now();
-            publishMsgs(registers, &imu_nh, imu_msg, tf_ned_to_enu, use_magnetic_field_msg);
+            publishMsgs(registers, &imu_nh, imu_msg, tf_ned_to_nwu, use_magnetic_field_msg);
             ros::spinOnce();
           }
         }
