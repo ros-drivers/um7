@@ -51,6 +51,10 @@ const char VERSION[10] = "0.0.2";   // um7_driver version
 // us to publish everything we have.
 const uint8_t TRIGGER_PACKET = DREG_EULER_PHI_THETA;
 
+enum OutputAxes {
+    DEFAULT, ENU, ROBOT_FRAME
+};
+
 /**
  * Function generalizes the process of writing an XYZ vector into consecutive
  * fields in UM7 registers.
@@ -206,7 +210,7 @@ bool handleResetService(um7::Comms* sensor,
  * the ROS messages which are output.
  */
 void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& imu_msg,
-    bool tf_ned_to_nwu, bool use_magnetic_field_msg)
+    OutputAxes axes, bool use_magnetic_field_msg)
 {
   static ros::Publisher imu_pub = imu_nh->advertise<sensor_msgs::Imu>("data", 1, false);
   static ros::Publisher mag_pub;
@@ -223,40 +227,65 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
 
   if (imu_pub.getNumSubscribers() > 0)
   {
-    // body-fixed frame NED to ENU: (x y z)->(x -y -z) or (w x y z)->(x -y -z w)
-    // world frame      NED to ENU: (x y z)->(y  x -z) or (w x y z)->(y  x -z w)
-    if (tf_ned_to_nwu)
-    {
-      // world frame
-      imu_msg.orientation.w = -r.quat.get_scaled(0);
-      imu_msg.orientation.x = -r.quat.get_scaled(1);
-      imu_msg.orientation.y =  r.quat.get_scaled(2);
-      imu_msg.orientation.z =  r.quat.get_scaled(3);
+    switch(axes) {
+        case ENU:
+        {
+            // body-fixed frame NED to ENU: (x y z)->(x -y -z) or (w x y z)->(x -y -z w)
+            // world frame      NED to ENU: (x y z)->(y  x -z) or (w x y z)->(y  x -z w)
+            // world frame
+            imu_msg.orientation.w =  r.quat.get_scaled(2);
+            imu_msg.orientation.x =  r.quat.get_scaled(1);
+            imu_msg.orientation.y = -r.quat.get_scaled(3);
+            imu_msg.orientation.z =  r.quat.get_scaled(0);
 
-      // body-fixed frame
-      imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
-      imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
-      imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
+            // body-fixed frame
+            imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
+            imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
+            imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
 
-      // body-fixed frame
-      imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
-      imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
-      imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
-    }
-    else
-    {
-      imu_msg.orientation.w = r.quat.get_scaled(0);
-      imu_msg.orientation.x = r.quat.get_scaled(1);
-      imu_msg.orientation.y = r.quat.get_scaled(2);
-      imu_msg.orientation.z = r.quat.get_scaled(3);
+            // body-fixed frame
+            imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
+            imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
+            imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
+            break;
+        }
+        case ROBOT_FRAME:
+        {
+            // body-fixed frame
+            imu_msg.orientation.w = -r.quat.get_scaled(0);
+            imu_msg.orientation.x = -r.quat.get_scaled(1);
+            imu_msg.orientation.y =  r.quat.get_scaled(2);
+            imu_msg.orientation.z =  r.quat.get_scaled(3);
 
-      imu_msg.angular_velocity.x = r.gyro.get_scaled(0);
-      imu_msg.angular_velocity.y = r.gyro.get_scaled(1);
-      imu_msg.angular_velocity.z = r.gyro.get_scaled(2);
+            // body-fixed frame
+            imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
+            imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
+            imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
 
-      imu_msg.linear_acceleration.x = r.accel.get_scaled(0);
-      imu_msg.linear_acceleration.y = r.accel.get_scaled(1);
-      imu_msg.linear_acceleration.z = r.accel.get_scaled(2);
+            // body-fixed frame
+            imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
+            imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
+            imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
+            break;
+        }
+        case DEFAULT:
+        {
+            imu_msg.orientation.w = r.quat.get_scaled(0);
+            imu_msg.orientation.x = r.quat.get_scaled(1);
+            imu_msg.orientation.y = r.quat.get_scaled(2);
+            imu_msg.orientation.z = r.quat.get_scaled(3);
+
+            imu_msg.angular_velocity.x = r.gyro.get_scaled(0);
+            imu_msg.angular_velocity.y = r.gyro.get_scaled(1);
+            imu_msg.angular_velocity.z = r.gyro.get_scaled(2);
+
+            imu_msg.linear_acceleration.x = r.accel.get_scaled(0);
+            imu_msg.linear_acceleration.y = r.accel.get_scaled(1);
+            imu_msg.linear_acceleration.z = r.accel.get_scaled(2);
+            break;
+        }
+        default:
+            ROS_ERROR("OuputAxes enum value invalid");
     }
 
     imu_pub.publish(imu_msg);
@@ -270,17 +299,28 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
       sensor_msgs::MagneticField mag_msg;
       mag_msg.header = imu_msg.header;
 
-      if (tf_ned_to_nwu)
-      {
-        mag_msg.magnetic_field.x = r.mag.get_scaled(1);
-        mag_msg.magnetic_field.y = r.mag.get_scaled(0);
-        mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
-      }
-      else
-      {
-        mag_msg.magnetic_field.x = r.mag.get_scaled(0);
-        mag_msg.magnetic_field.y = r.mag.get_scaled(1);
-        mag_msg.magnetic_field.z = r.mag.get_scaled(2);
+      switch(axes) {
+          case ENU: {
+              mag_msg.magnetic_field.x = r.mag.get_scaled(1);
+              mag_msg.magnetic_field.y = r.mag.get_scaled(0);
+              mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
+              break;
+          }
+          case ROBOT_FRAME: {
+              // body-fixed frame
+              mag_msg.magnetic_field.x =  r.mag.get_scaled(0);
+              mag_msg.magnetic_field.y = -r.mag.get_scaled(1);
+              mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
+              break;
+          }
+          case DEFAULT: {
+              mag_msg.magnetic_field.x = r.mag.get_scaled(0);
+              mag_msg.magnetic_field.y = r.mag.get_scaled(1);
+              mag_msg.magnetic_field.z = r.mag.get_scaled(2);
+              break;
+          }
+          default:
+              ROS_ERROR("OuputAxes enum value invalid");
       }
 
       mag_pub.publish(mag_msg);
@@ -290,18 +330,29 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
       geometry_msgs::Vector3Stamped mag_msg;
       mag_msg.header = imu_msg.header;
 
-      if (tf_ned_to_nwu)
-      {
-        mag_msg.vector.x = r.mag.get_scaled(1);
-        mag_msg.vector.y = r.mag.get_scaled(0);
-        mag_msg.vector.z = -r.mag.get_scaled(2);
-      }
-      else
-      {
-        mag_msg.vector.x = r.mag.get_scaled(0);
-        mag_msg.vector.y = r.mag.get_scaled(1);
-        mag_msg.vector.z = r.mag.get_scaled(2);
-      }
+        switch(axes) {
+            case ENU: {
+                mag_msg.vector.x = r.mag.get_scaled(1);
+                mag_msg.vector.y = r.mag.get_scaled(0);
+                mag_msg.vector.z = -r.mag.get_scaled(2);
+                break;
+            }
+            case ROBOT_FRAME: {
+                // body-fixed frame
+                mag_msg.vector.x =  r.mag.get_scaled(0);
+                mag_msg.vector.y = -r.mag.get_scaled(1);
+                mag_msg.vector.z = -r.mag.get_scaled(2);
+                break;
+            }
+            case DEFAULT:{
+                mag_msg.vector.x = r.mag.get_scaled(0);
+                mag_msg.vector.y = r.mag.get_scaled(1);
+                mag_msg.vector.z = r.mag.get_scaled(2);
+                break;
+            }
+            default:
+                ROS_ERROR("OuputAxes enum value invalid");
+        }
 
       mag_pub.publish(mag_msg);
     }
@@ -313,18 +364,28 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
     geometry_msgs::Vector3Stamped rpy_msg;
     rpy_msg.header = imu_msg.header;
 
-    if (tf_ned_to_nwu)
-    {
-      // world frame
-      rpy_msg.vector.x =  r.euler.get_scaled(1);
-      rpy_msg.vector.y =  r.euler.get_scaled(0);
-      rpy_msg.vector.z = -r.euler.get_scaled(2);
-    }
-    else
-    {
-      rpy_msg.vector.x = r.euler.get_scaled(0);
-      rpy_msg.vector.y = r.euler.get_scaled(1);
-      rpy_msg.vector.z = r.euler.get_scaled(2);
+    switch(axes) {
+        case ENU: {
+            // world frame
+            rpy_msg.vector.x = r.euler.get_scaled(1);
+            rpy_msg.vector.y = r.euler.get_scaled(0);
+            rpy_msg.vector.z = -r.euler.get_scaled(2);
+            break;
+        }
+        case ROBOT_FRAME: {
+            rpy_msg.vector.x =  r.euler.get_scaled(0);
+            rpy_msg.vector.y = -r.euler.get_scaled(1);
+            rpy_msg.vector.z = -r.euler.get_scaled(2);
+            break;
+        }
+        case DEFAULT: {
+            rpy_msg.vector.x = r.euler.get_scaled(0);
+            rpy_msg.vector.y = r.euler.get_scaled(1);
+            rpy_msg.vector.z = r.euler.get_scaled(2);
+            break;
+        }
+        default:
+            ROS_ERROR("OuputAxes enum value invalid");
     }
 
     rpy_pub.publish(rpy_msg);
@@ -381,8 +442,20 @@ int main(int argc, char **argv)
   double orientation_z_covar = orientation_z_stdev * orientation_z_stdev;
 
   // Enable converting from NED to ENU by default
-  bool tf_ned_to_nwu;
-  private_nh.param<bool>("tf_ned_to_nwu", tf_ned_to_nwu, true);
+  bool tf_ned_to_enu;
+  bool tf_ned_to_robot_frame;
+  private_nh.param<bool>("tf_ned_to_enu", tf_ned_to_enu, true);
+  private_nh.param<bool>("tf_ned_to_robot_frame", tf_ned_to_robot_frame, false);
+  OutputAxes axes = DEFAULT;
+  if (tf_ned_to_enu && tf_ned_to_robot_frame)
+  {
+      ROS_ERROR("Requested IMU data in two separate frames.");
+  } else if(tf_ned_to_enu) {
+      axes = ENU;
+  } else if(tf_ned_to_robot_frame)
+  {
+      axes = ROBOT_FRAME;
+  }
 
   // Use MagneticField message rather than Vector3Stamped.
   bool use_magnetic_field_msg;
@@ -432,7 +505,7 @@ int main(int argc, char **argv)
           {
             // Triggered by arrival of final message in group.
             imu_msg.header.stamp = ros::Time::now();
-            publishMsgs(registers, &imu_nh, imu_msg, tf_ned_to_nwu, use_magnetic_field_msg);
+            publishMsgs(registers, &imu_nh, imu_msg, axes, use_magnetic_field_msg);
             ros::spinOnce();
           }
         }
