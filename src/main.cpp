@@ -51,7 +51,8 @@ const char VERSION[10] = "0.0.2";   // um7_driver version
 // us to publish everything we have.
 const uint8_t TRIGGER_PACKET = DREG_EULER_PHI_THETA;
 
-enum OutputAxes {
+enum OutputAxes
+{
     DEFAULT, ENU, ROBOT_FRAME
 };
 
@@ -227,7 +228,8 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
 
   if (imu_pub.getNumSubscribers() > 0)
   {
-    switch(axes) {
+    switch (axes)
+    {
         case ENU:
         {
             // body-fixed frame NED to ENU: (x y z)->(x -y -z) or (w x y z)->(x -y -z w)
@@ -299,21 +301,25 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
       sensor_msgs::MagneticField mag_msg;
       mag_msg.header = imu_msg.header;
 
-      switch(axes) {
-          case ENU: {
+      switch (axes)
+      {
+          case ENU:
+          {
               mag_msg.magnetic_field.x = r.mag.get_scaled(1);
               mag_msg.magnetic_field.y = r.mag.get_scaled(0);
               mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
               break;
           }
-          case ROBOT_FRAME: {
+          case ROBOT_FRAME:
+          {
               // body-fixed frame
               mag_msg.magnetic_field.x =  r.mag.get_scaled(0);
               mag_msg.magnetic_field.y = -r.mag.get_scaled(1);
               mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
               break;
           }
-          case DEFAULT: {
+          case DEFAULT:
+          {
               mag_msg.magnetic_field.x = r.mag.get_scaled(0);
               mag_msg.magnetic_field.y = r.mag.get_scaled(1);
               mag_msg.magnetic_field.z = r.mag.get_scaled(2);
@@ -330,29 +336,33 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
       geometry_msgs::Vector3Stamped mag_msg;
       mag_msg.header = imu_msg.header;
 
-        switch(axes) {
-            case ENU: {
-                mag_msg.vector.x = r.mag.get_scaled(1);
-                mag_msg.vector.y = r.mag.get_scaled(0);
-                mag_msg.vector.z = -r.mag.get_scaled(2);
-                break;
-            }
-            case ROBOT_FRAME: {
-                // body-fixed frame
-                mag_msg.vector.x =  r.mag.get_scaled(0);
-                mag_msg.vector.y = -r.mag.get_scaled(1);
-                mag_msg.vector.z = -r.mag.get_scaled(2);
-                break;
-            }
-            case DEFAULT:{
-                mag_msg.vector.x = r.mag.get_scaled(0);
-                mag_msg.vector.y = r.mag.get_scaled(1);
-                mag_msg.vector.z = r.mag.get_scaled(2);
-                break;
-            }
-            default:
-                ROS_ERROR("OuputAxes enum value invalid");
-        }
+      switch (axes)
+      {
+          case ENU:
+          {
+              mag_msg.vector.x = r.mag.get_scaled(1);
+              mag_msg.vector.y = r.mag.get_scaled(0);
+              mag_msg.vector.z = -r.mag.get_scaled(2);
+              break;
+          }
+          case ROBOT_FRAME:
+          {
+              // body-fixed frame
+              mag_msg.vector.x =  r.mag.get_scaled(0);
+              mag_msg.vector.y = -r.mag.get_scaled(1);
+              mag_msg.vector.z = -r.mag.get_scaled(2);
+              break;
+          }
+          case DEFAULT:
+          {
+              mag_msg.vector.x = r.mag.get_scaled(0);
+              mag_msg.vector.y = r.mag.get_scaled(1);
+              mag_msg.vector.z = r.mag.get_scaled(2);
+              break;
+          }
+          default:
+              ROS_ERROR("OuputAxes enum value invalid");
+      }
 
       mag_pub.publish(mag_msg);
     }
@@ -364,21 +374,25 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
     geometry_msgs::Vector3Stamped rpy_msg;
     rpy_msg.header = imu_msg.header;
 
-    switch(axes) {
-        case ENU: {
+    switch (axes)
+    {
+        case ENU:
+        {
             // world frame
             rpy_msg.vector.x = r.euler.get_scaled(1);
             rpy_msg.vector.y = r.euler.get_scaled(0);
             rpy_msg.vector.z = -r.euler.get_scaled(2);
             break;
         }
-        case ROBOT_FRAME: {
+        case ROBOT_FRAME:
+        {
             rpy_msg.vector.x =  r.euler.get_scaled(0);
             rpy_msg.vector.y = -r.euler.get_scaled(1);
             rpy_msg.vector.z = -r.euler.get_scaled(2);
             break;
         }
-        case DEFAULT: {
+        case DEFAULT:
+        {
             rpy_msg.vector.x = r.euler.get_scaled(0);
             rpy_msg.vector.y = r.euler.get_scaled(1);
             rpy_msg.vector.z = r.euler.get_scaled(2);
@@ -450,9 +464,12 @@ int main(int argc, char **argv)
   if (tf_ned_to_enu && tf_ned_to_robot_frame)
   {
       ROS_ERROR("Requested IMU data in two separate frames.");
-  } else if(tf_ned_to_enu) {
+  }
+  else if (tf_ned_to_enu)
+  {
       axes = ENU;
-  } else if(tf_ned_to_robot_frame)
+  }
+  else if (tf_ned_to_robot_frame)
   {
       axes = ROBOT_FRAME;
   }
