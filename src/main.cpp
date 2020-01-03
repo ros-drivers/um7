@@ -230,64 +230,64 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
   {
     switch (axes)
     {
-        case ENU:
-        {
-            // body-fixed frame NED to ENU: (x y z)->(x -y -z) or (w x y z)->(x -y -z w)
-            // world frame      NED to ENU: (x y z)->(y  x -z) or (w x y z)->(y  x -z w)
-            // world frame
-            imu_msg.orientation.w =  r.quat.get_scaled(2);
-            imu_msg.orientation.x =  r.quat.get_scaled(1);
-            imu_msg.orientation.y = -r.quat.get_scaled(3);
-            imu_msg.orientation.z =  r.quat.get_scaled(0);
+      case ENU:
+      {
+        // body-fixed frame NED to ENU: (x y z)->(x -y -z) or (w x y z)->(x -y -z w)
+        // world frame      NED to ENU: (x y z)->(y  x -z) or (w x y z)->(y  x -z w)
+        // world frame
+        imu_msg.orientation.w =  r.quat.get_scaled(2);
+        imu_msg.orientation.x =  r.quat.get_scaled(1);
+        imu_msg.orientation.y = -r.quat.get_scaled(3);
+        imu_msg.orientation.z =  r.quat.get_scaled(0);
 
-            // body-fixed frame
-            imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
-            imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
-            imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
+        // body-fixed frame
+        imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
+        imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
+        imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
 
-            // body-fixed frame
-            imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
-            imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
-            imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
-            break;
-        }
-        case ROBOT_FRAME:
-        {
-            // body-fixed frame
-            imu_msg.orientation.w = -r.quat.get_scaled(0);
-            imu_msg.orientation.x = -r.quat.get_scaled(1);
-            imu_msg.orientation.y =  r.quat.get_scaled(2);
-            imu_msg.orientation.z =  r.quat.get_scaled(3);
+        // body-fixed frame
+        imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
+        imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
+        imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
+        break;
+      }
+      case ROBOT_FRAME:
+      {
+        // body-fixed frame
+        imu_msg.orientation.w = -r.quat.get_scaled(0);
+        imu_msg.orientation.x = -r.quat.get_scaled(1);
+        imu_msg.orientation.y =  r.quat.get_scaled(2);
+        imu_msg.orientation.z =  r.quat.get_scaled(3);
 
-            // body-fixed frame
-            imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
-            imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
-            imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
+        // body-fixed frame
+        imu_msg.angular_velocity.x =  r.gyro.get_scaled(0);
+        imu_msg.angular_velocity.y = -r.gyro.get_scaled(1);
+        imu_msg.angular_velocity.z = -r.gyro.get_scaled(2);
 
-            // body-fixed frame
-            imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
-            imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
-            imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
-            break;
-        }
-        case DEFAULT:
-        {
-            imu_msg.orientation.w = r.quat.get_scaled(0);
-            imu_msg.orientation.x = r.quat.get_scaled(1);
-            imu_msg.orientation.y = r.quat.get_scaled(2);
-            imu_msg.orientation.z = r.quat.get_scaled(3);
+        // body-fixed frame
+        imu_msg.linear_acceleration.x =  r.accel.get_scaled(0);
+        imu_msg.linear_acceleration.y = -r.accel.get_scaled(1);
+        imu_msg.linear_acceleration.z = -r.accel.get_scaled(2);
+        break;
+      }
+      case DEFAULT:
+      {
+        imu_msg.orientation.w = r.quat.get_scaled(0);
+        imu_msg.orientation.x = r.quat.get_scaled(1);
+        imu_msg.orientation.y = r.quat.get_scaled(2);
+        imu_msg.orientation.z = r.quat.get_scaled(3);
 
-            imu_msg.angular_velocity.x = r.gyro.get_scaled(0);
-            imu_msg.angular_velocity.y = r.gyro.get_scaled(1);
-            imu_msg.angular_velocity.z = r.gyro.get_scaled(2);
+        imu_msg.angular_velocity.x = r.gyro.get_scaled(0);
+        imu_msg.angular_velocity.y = r.gyro.get_scaled(1);
+        imu_msg.angular_velocity.z = r.gyro.get_scaled(2);
 
-            imu_msg.linear_acceleration.x = r.accel.get_scaled(0);
-            imu_msg.linear_acceleration.y = r.accel.get_scaled(1);
-            imu_msg.linear_acceleration.z = r.accel.get_scaled(2);
-            break;
-        }
-        default:
-            ROS_ERROR("OuputAxes enum value invalid");
+        imu_msg.linear_acceleration.x = r.accel.get_scaled(0);
+        imu_msg.linear_acceleration.y = r.accel.get_scaled(1);
+        imu_msg.linear_acceleration.z = r.accel.get_scaled(2);
+        break;
+      }
+      default:
+        ROS_ERROR("OuputAxes enum value invalid");
     }
 
     imu_pub.publish(imu_msg);
@@ -303,30 +303,30 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
 
       switch (axes)
       {
-          case ENU:
-          {
-              mag_msg.magnetic_field.x = r.mag.get_scaled(1);
-              mag_msg.magnetic_field.y = r.mag.get_scaled(0);
-              mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
-              break;
-          }
-          case ROBOT_FRAME:
-          {
-              // body-fixed frame
-              mag_msg.magnetic_field.x =  r.mag.get_scaled(0);
-              mag_msg.magnetic_field.y = -r.mag.get_scaled(1);
-              mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
-              break;
-          }
-          case DEFAULT:
-          {
-              mag_msg.magnetic_field.x = r.mag.get_scaled(0);
-              mag_msg.magnetic_field.y = r.mag.get_scaled(1);
-              mag_msg.magnetic_field.z = r.mag.get_scaled(2);
-              break;
-          }
-          default:
-              ROS_ERROR("OuputAxes enum value invalid");
+        case ENU:
+        {
+          mag_msg.magnetic_field.x = r.mag.get_scaled(1);
+          mag_msg.magnetic_field.y = r.mag.get_scaled(0);
+          mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
+          break;
+        }
+        case ROBOT_FRAME:
+        {
+          // body-fixed frame
+          mag_msg.magnetic_field.x =  r.mag.get_scaled(0);
+          mag_msg.magnetic_field.y = -r.mag.get_scaled(1);
+          mag_msg.magnetic_field.z = -r.mag.get_scaled(2);
+          break;
+        }
+        case DEFAULT:
+        {
+          mag_msg.magnetic_field.x = r.mag.get_scaled(0);
+          mag_msg.magnetic_field.y = r.mag.get_scaled(1);
+          mag_msg.magnetic_field.z = r.mag.get_scaled(2);
+          break;
+        }
+        default:
+          ROS_ERROR("OuputAxes enum value invalid");
       }
 
       mag_pub.publish(mag_msg);
@@ -338,30 +338,30 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
 
       switch (axes)
       {
-          case ENU:
-          {
-              mag_msg.vector.x = r.mag.get_scaled(1);
-              mag_msg.vector.y = r.mag.get_scaled(0);
-              mag_msg.vector.z = -r.mag.get_scaled(2);
-              break;
-          }
-          case ROBOT_FRAME:
-          {
-              // body-fixed frame
-              mag_msg.vector.x =  r.mag.get_scaled(0);
-              mag_msg.vector.y = -r.mag.get_scaled(1);
-              mag_msg.vector.z = -r.mag.get_scaled(2);
-              break;
-          }
-          case DEFAULT:
-          {
-              mag_msg.vector.x = r.mag.get_scaled(0);
-              mag_msg.vector.y = r.mag.get_scaled(1);
-              mag_msg.vector.z = r.mag.get_scaled(2);
-              break;
-          }
-          default:
-              ROS_ERROR("OuputAxes enum value invalid");
+        case ENU:
+        {
+          mag_msg.vector.x = r.mag.get_scaled(1);
+          mag_msg.vector.y = r.mag.get_scaled(0);
+          mag_msg.vector.z = -r.mag.get_scaled(2);
+          break;
+        }
+        case ROBOT_FRAME:
+        {
+          // body-fixed frame
+          mag_msg.vector.x =  r.mag.get_scaled(0);
+          mag_msg.vector.y = -r.mag.get_scaled(1);
+          mag_msg.vector.z = -r.mag.get_scaled(2);
+          break;
+        }
+        case DEFAULT:
+        {
+          mag_msg.vector.x = r.mag.get_scaled(0);
+          mag_msg.vector.y = r.mag.get_scaled(1);
+          mag_msg.vector.z = r.mag.get_scaled(2);
+          break;
+        }
+        default:
+          ROS_ERROR("OuputAxes enum value invalid");
       }
 
       mag_pub.publish(mag_msg);
@@ -376,30 +376,30 @@ void publishMsgs(um7::Registers& r, ros::NodeHandle* imu_nh, sensor_msgs::Imu& i
 
     switch (axes)
     {
-        case ENU:
-        {
-            // world frame
-            rpy_msg.vector.x = r.euler.get_scaled(1);
-            rpy_msg.vector.y = r.euler.get_scaled(0);
-            rpy_msg.vector.z = -r.euler.get_scaled(2);
-            break;
-        }
-        case ROBOT_FRAME:
-        {
-            rpy_msg.vector.x =  r.euler.get_scaled(0);
-            rpy_msg.vector.y = -r.euler.get_scaled(1);
-            rpy_msg.vector.z = -r.euler.get_scaled(2);
-            break;
-        }
-        case DEFAULT:
-        {
-            rpy_msg.vector.x = r.euler.get_scaled(0);
-            rpy_msg.vector.y = r.euler.get_scaled(1);
-            rpy_msg.vector.z = r.euler.get_scaled(2);
-            break;
-        }
-        default:
-            ROS_ERROR("OuputAxes enum value invalid");
+      case ENU:
+      {
+        // world frame
+        rpy_msg.vector.x = r.euler.get_scaled(1);
+        rpy_msg.vector.y = r.euler.get_scaled(0);
+        rpy_msg.vector.z = -r.euler.get_scaled(2);
+        break;
+      }
+      case ROBOT_FRAME:
+      {
+        rpy_msg.vector.x =  r.euler.get_scaled(0);
+        rpy_msg.vector.y = -r.euler.get_scaled(1);
+        rpy_msg.vector.z = -r.euler.get_scaled(2);
+        break;
+      }
+      case DEFAULT:
+      {
+        rpy_msg.vector.x = r.euler.get_scaled(0);
+        rpy_msg.vector.y = r.euler.get_scaled(1);
+        rpy_msg.vector.z = r.euler.get_scaled(2);
+        break;
+      }
+      default:
+        ROS_ERROR("OuputAxes enum value invalid");
     }
 
     rpy_pub.publish(rpy_msg);
