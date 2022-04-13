@@ -2,8 +2,8 @@
 Changelog for package um7
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.7 (2022-04-13)
+------------------
 * Add output in robot frame option (`#26 <https://github.com/ros-drivers/um7/issues/26>`_)
   * Correctly convert quaternion to ROS frame
   * Rename tf_ned_to_enu to tf_ned_to_nwu
