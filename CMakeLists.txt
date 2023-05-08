@@ -1,57 +1,69 @@
-cmake_minimum_required(VERSION 2.8.3)
-project(um7)
+cmake_minimum_required(VERSION 3.8)
+project(umx_driver)
 
-find_package(catkin REQUIRED COMPONENTS roscpp serial sensor_msgs message_generation)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-add_service_files(
-  FILES
-  Reset.srv
-)
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(serial REQUIRED)
+find_package(std_msgs REQUIRED)
 
-generate_messages()
-
-catkin_package(
-   INCLUDE_DIRS include
-   CATKIN_DEPENDS message_runtime
-)
 
 ###########
 ## Build ##
 ###########
 
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-include_directories(include
-  ${catkin_INCLUDE_DIRS}
+include_directories(
+  include
 )
 
-## Declare a cpp executable
-add_executable(um7_driver src/main.cpp src/registers.cpp src/comms.cpp)
-target_link_libraries(um7_driver ${catkin_LIBRARIES} )
-add_dependencies(um7_driver um7_generate_messages_cpp)
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/Reset.srv"
+)
+
+ament_export_dependencies(rosidl_default_runtime)
+
+add_executable(umx_bridge src/umx_bridge.cpp)
+target_compile_features(umx_bridge PUBLIC c_std_99 cxx_std_14)  # Require C99 and C++14
+
+target_sources(umx_bridge
+  PRIVATE
+  src/registers.cpp
+  src/comms.cpp
+)
+
+ament_target_dependencies(umx_bridge
+  geometry_msgs
+  rclcpp
+  sensor_msgs
+  serial
+  std_msgs
+)
+
+rosidl_get_typesupport_target(cpp_typesupport_target
+  ${PROJECT_NAME} rosidl_typesupport_cpp)
+target_link_libraries(umx_bridge "${cpp_typesupport_target}")
 
 #############
 ## Install ##
 #############
 
-install(TARGETS um7_driver
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+install(TARGETS umx_bridge
+  DESTINATION lib/${PROJECT_NAME})
 
 #############
 ## Testing ##
 #############
-if(CATKIN_ENABLE_TESTING)
-  find_package(roslint REQUIRED)
 
-  catkin_add_gtest(${PROJECT_NAME}_test_registers test/test_registers.cpp src/registers.cpp)
-  catkin_add_gtest(${PROJECT_NAME}_test_comms test/test_comms.cpp src/comms.cpp src/registers.cpp)
-  target_link_libraries(${PROJECT_NAME}_test_comms util ${catkin_LIBRARIES})
-
-  file(GLOB LINT_SRCS
-    src/*.cpp
-    include/um7/registers.h
-    include/um7/comms.h)
-  roslint_cpp(${LINT_SRCS})
-  roslint_add_test()
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_package()

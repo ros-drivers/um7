@@ -31,9 +31,9 @@
  *
  */
 
-#include "um7/registers.h"
+#include "umx_driver/registers.h"
 
-namespace um7
+namespace umx
 {
 
 void* Accessor_::raw() const
@@ -46,4 +46,4 @@ void* Accessor_::raw() const
    */
   return &registers_->raw_[index];
 }
-}  // namespace um7
+}  // namespace umx

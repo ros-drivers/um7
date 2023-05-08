@@ -4,7 +4,8 @@
  *  \brief      Comms class definition. Does not manage the serial connection
  *              itself, but takes care of reading and writing to UM7.
  *  \author     Mike Purvis <mpurvis@clearpathrobotics.com>
- *  \copyright  Copyright (c) 2013, Clearpath Robotics, Inc.
+ *  \author     Hilary Luo <hluo@clearpathrobotics.com>
+ *  \copyright  Copyright (c) 2023, Clearpath Robotics, Inc.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,26 +33,27 @@
  *
  */
 
-#ifndef UM7_COMMS_H_
-#define UM7_COMMS_H_
+#ifndef UMX_COMMS_H_
+#define UMX_COMMS_H_
 
 #include <stdint.h>
 #include <string>
 
-namespace serial
-{
-class Serial;
-}
+#include <arpa/inet.h>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/foreach.hpp>
 
-namespace um7
+#include "rclcpp/rclcpp.hpp"
+
+#include "umx_driver/registers.h"
+#include "serial/serial.h"
+
+namespace umx
 {
 
 class SerialTimeout : public std::exception {};
 
 class BadChecksum : public std::exception {};
-
-class Registers;
-class Accessor_;
 
 class Comms
 {
@@ -66,7 +68,7 @@ public:
    * Otherwise, returns the 8-bit register number of the successfully
    * returned packet.
    */
-  int16_t receive(Registers* r);
+  int16_t receive(Registers* registers);
 
   void send(const Accessor_& a) const;
 
@@ -82,10 +84,10 @@ public:
   static std::string message(uint8_t address, std::string data);
 
 private:
-  bool first_spin_;
   serial::Serial* serial_;
+  bool first_spin_;
 };
-}  // namespace um7
+}  // namespace umx
 
-#endif  // UM7_COMMS_H
+#endif  // UMX_COMMS_H_
 

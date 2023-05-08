@@ -32,18 +32,9 @@
  *
  */
 
-#include "um7/comms.h"
+#include "umx_driver/comms.h"
 
-#include <arpa/inet.h>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/foreach.hpp>
-#include <string>
-
-#include "ros/console.h"
-#include "serial/serial.h"
-#include "um7/registers.h"
-
-namespace um7
+namespace umx
 {
 
 const uint8_t Comms::PACKET_HAS_DATA = 1 << 7;
@@ -59,7 +50,8 @@ int16_t Comms::receive(Registers* registers = NULL)
     size_t available = serial_->available();
     if (available > 255)
     {
-      ROS_WARN_STREAM("Serial read buffer is " << available << ", now flushing in an attempt to catch up.");
+      RCLCPP_WARN_STREAM(rclcpp::get_logger("umx_driver::comms"), "Serial read buffer is " 
+                         << available << ", now flushing in an attempt to catch up."); // TODO: ROS1
       serial_->flushInput();
     }
 
@@ -80,9 +72,9 @@ int16_t Comms::receive(Registers* registers = NULL)
       std::string snp;
       serial_->readline(snp, 96, "snp");
       if (!boost::algorithm::ends_with(snp, "snp")) throw SerialTimeout();
-      if (snp.length() > 3)
+      if ((snp.length() > 3) && !first_spin_)
       {
-        ROS_WARN_STREAM_COND(!first_spin_,
+        RCLCPP_WARN_STREAM(rclcpp::get_logger("umx_driver::comms"), 
           "Discarded " << 5 + snp.length() - 3 << " junk byte(s) preceeding packet.");
       }
       if (serial_->read(&type, 1) != 1) throw SerialTimeout();
@@ -99,11 +91,11 @@ int16_t Comms::receive(Registers* registers = NULL)
       if (type & PACKET_IS_BATCH)
       {
         data_length = (type >> PACKET_BATCH_LENGTH_OFFSET) & PACKET_BATCH_LENGTH_MASK;
-        ROS_DEBUG("Received packet %02x with batched (%d) data.", address, data_length);
+        RCLCPP_DEBUG(rclcpp::get_logger("umx_driver::comms"), "Received packet %02x with batched (%d) data.", address, data_length); // TODO: ROS1
       }
       else
       {
-        ROS_DEBUG("Received packet %02x with non-batched data.", address);
+        RCLCPP_DEBUG(rclcpp::get_logger("umx_driver::comms"), "Received packet %02x with non-batched data.", address); // TODO: ROS1
       }
 
       // Read data bytes initially into a buffer so that we can compute the checksum.
@@ -115,7 +107,7 @@ int16_t Comms::receive(Registers* registers = NULL)
     }
     else
     {
-      ROS_INFO("Received packet %02x without data.", address);
+      RCLCPP_INFO(rclcpp::get_logger("umx_driver::comms"), "Received packet %02x without data.", address); // TODO: ROS1
     }
 
     // Compare computed checksum with transmitted value.
@@ -142,11 +134,11 @@ int16_t Comms::receive(Registers* registers = NULL)
   }
   catch(const SerialTimeout& e)
   {
-    ROS_WARN("Timed out waiting for packet from device.");
+    RCLCPP_WARN(rclcpp::get_logger("umx_driver::comms"), "Timed out waiting for packet from device."); // TODO: ROS1
   }
   catch(const BadChecksum& e)
   {
-    ROS_WARN("Discarding packet due to bad checksum.");
+    RCLCPP_WARN(rclcpp::get_logger("umx_driver::comms"), "Discarding packet due to bad checksum."); // TODO: ROS1
   }
   return -1;
 }
@@ -159,7 +151,7 @@ std::string Comms::checksum(const std::string& s)
     checksum += ch;
   }
   checksum = htons(checksum);
-  ROS_DEBUG("Computed checksum on string of length %zd as %04x.", s.length(), checksum);
+  RCLCPP_DEBUG(rclcpp::get_logger("umx_driver::comms"), "Computed checksum on string of length %zd as %04x.", s.length(), checksum); // TODO: ROS1
   std::string out(2, 0);
   memcpy(&out[0], &checksum, 2);
   return out;
@@ -184,39 +176,38 @@ std::string Comms::message(uint8_t address, std::string data)
   std::string c = checksum(output);
   ss << c;
   output = ss.str();
-  ROS_DEBUG("Generated message %02x of overall length %zd.", address, output.length());
+  RCLCPP_DEBUG(rclcpp::get_logger("umx_driver::comms"), "Generated message %02x of overall length %zd.", address, output.length()); // TODO: ROS1
   return output;
 }
 
-void Comms::send(const Accessor_& r) const
+void Comms::send(const Accessor_& a) const
 {
-  uint8_t address = r.index;
-  std::string data(reinterpret_cast<char*>(r.raw()), r.length * 4);
-  serial_->write(message(r.index, data));
+  std::string data(reinterpret_cast<char*>(a.raw()), a.length * 4);
+  serial_->write(message(a.index, data));
 }
 
-bool Comms::sendWaitAck(const Accessor_& r)
+bool Comms::sendWaitAck(const Accessor_& a)
 {
   const uint8_t tries = 5;
   for (uint8_t t = 0; t < tries; t++)
   {
-    send(r);
+    send(a);
     const uint8_t listens = 20;
     for (uint8_t i = 0; i < listens; i++)
     {
       int16_t received = receive();
-      if (received == r.index)
+      if (received == a.index)
       {
-        ROS_DEBUG("Message %02x ack received.", received);
+        RCLCPP_DEBUG(rclcpp::get_logger("umx_driver::comms"), "Message %02x ack received.", received); // TODO: ROS1
         return true;
       }
       else if (received == -1)
       {
-        ROS_DEBUG("Serial read timed out waiting for ack. Attempting to retransmit.");
+        RCLCPP_DEBUG(rclcpp::get_logger("umx_driver::comms"), "Serial read timed out waiting for ack. Attempting to retransmit.");
         break;
       }
     }
   }
   return false;
 }
-}  // namespace um7
+}  // namespace umx

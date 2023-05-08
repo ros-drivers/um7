@@ -33,8 +33,8 @@
  *
  */
 
-#ifndef UM7_REGISTERS_H_
-#define UM7_REGISTERS_H_
+#ifndef UMX_REGISTERS_H_
+#define UMX_REGISTERS_H_
 
 #if __APPLE__
 #include <machine/endian.h>
@@ -49,7 +49,7 @@
 #include <string>
 #include <stdexcept>
 
-#include "um7/firmware_registers.h"
+#include "umx_driver/firmware_registers.h"
 
 #define TO_RADIANS (M_PI / 180.0)
 #define TO_DEGREES (180.0 / M_PI)
@@ -59,7 +59,7 @@
 #define NUM_REGISTERS (DATA_REG_START_ADDRESS + DATA_ARRAY_SIZE)
 
 
-namespace um7
+namespace umx
 {
 
 inline void memcpy_network(void* dest, void* src, size_t count)
@@ -161,20 +161,20 @@ class Registers
     Registers() :
       gyro_raw(this, DREG_GYRO_RAW_XY, 3),
       accel_raw(this, DREG_ACCEL_RAW_XY, 3),
+      euler(this, DREG_EULER_PHI_THETA, 3, 0.0109863 * TO_RADIANS),
       mag_raw(this, DREG_MAG_RAW_XY, 3),
+      quat(this, DREG_QUAT_AB, 4, 0.0000335693),
       gyro(this, DREG_GYRO_PROC_X, 3, 1.0 * TO_RADIANS),
       accel(this, DREG_ACCEL_PROC_X, 3, 9.80665),
       mag(this, DREG_MAG_PROC_X, 3, 1.0),
-      euler(this, DREG_EULER_PHI_THETA, 3, 0.0109863 * TO_RADIANS),
-      quat(this, DREG_QUAT_AB, 4, 0.0000335693),
       temperature(this, DREG_TEMPERATURE, 1),
       communication(this, CREG_COM_SETTINGS, 1),
+      misc_config(this, CREG_MISC_SETTINGS, 1),
+      status(this, CREG_COM_RATES6, 1),
       comrate2(this, CREG_COM_RATES2, 1),
       comrate4(this, CREG_COM_RATES4, 1),
       comrate5(this, CREG_COM_RATES5, 1),
       comrate6(this, CREG_COM_RATES6, 1),
-      misc_config(this, CREG_MISC_SETTINGS, 1),
-      status(this, CREG_COM_RATES6, 1),
       mag_bias(this, CREG_MAG_BIAS_X, 3),
       cmd_zero_gyros(this, CHR_ZERO_GYROS),
       cmd_reset_ekf(this, CHR_RESET_EKF),
@@ -211,6 +211,6 @@ class Registers
 
   friend class Accessor_;
 };
-}  // namespace um7
+}  // namespace umx
 
-#endif  // UM7_REGISTERS_H_
+#endif  // UMX_REGISTERS_H_
