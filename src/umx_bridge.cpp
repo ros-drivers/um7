@@ -55,7 +55,7 @@ void UmxDriver::send_command(const umx::Accessor<RegT>& reg, std::string human_n
   RCLCPP_INFO_STREAM(this->get_logger(), "Sending command: " << human_name);
   if (!sensor_->sendWaitAck(reg))
   {
-    throw std::runtime_error("Command to device failed.");
+    throw std::runtime_error(human_name + " command to device failed.");
   }
 }
 
