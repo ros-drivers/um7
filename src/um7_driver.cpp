@@ -34,15 +34,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "umx_driver/umx_bridge.h"
+#include "umx_driver/um7_driver.h"
 
-const char VERSION[10] = "0.0.1";   // umx_driver version
+const char VERSION[10] = "0.0.1";   // um7_driver version
 
 // Don't try to be too clever. Arrival of this message triggers
 // us to publish everything we have.
 const uint8_t TRIGGER_PACKET = DREG_EULER_PHI_THETA;
 
-namespace umx
+namespace um7
 {
 
 /**
@@ -50,7 +50,7 @@ namespace umx
  * registers.
  */
 template<typename RegT>
-void UmxDriver::send_command(const umx::Accessor<RegT>& reg, std::string human_name)
+void Um7Driver::send_command(const um7::Accessor<RegT>& reg, std::string human_name)
 {
   RCLCPP_INFO_STREAM(this->get_logger(), "Sending command: " << human_name);
   if (!sensor_->sendWaitAck(reg))
@@ -64,9 +64,9 @@ void UmxDriver::send_command(const umx::Accessor<RegT>& reg, std::string human_n
  * Send configuration messages to the UM7, critically, to turn on the value outputs
  * which we require, and inject necessary configuration parameters.
  */
-void UmxDriver::configure_sensor()
+void Um7Driver::configure_sensor()
 {
-  umx::Registers r;
+  um7::Registers r;
 
   uint32_t comm_reg = (BAUD_115200 << COM_BAUD_START);
   r.communication.set(0, comm_reg);
@@ -153,14 +153,16 @@ void UmxDriver::configure_sensor()
   if (zero_gyros) send_command(r.cmd_zero_gyros, "zero gyroscopes");
 }
 
-bool UmxDriver::handle_reset_service(const std::shared_ptr<umx_driver::srv::Reset::Request> req,
-  std::shared_ptr<umx_driver::srv::Reset::Response> resp)
+bool Um7Driver::handle_reset_service(const std::shared_ptr<umx_driver::srv::Um7Reset::Request> req,
+  std::shared_ptr<umx_driver::srv::Um7Reset::Response> resp)
 {
+  mutex_.lock();
   (void)resp;
-  umx::Registers r;
+  um7::Registers r;
   if (req->zero_gyros) send_command(r.cmd_zero_gyros, "zero gyroscopes");
   if (req->reset_ekf) send_command(r.cmd_reset_ekf, "reset EKF");
   if (req->set_mag_ref) send_command(r.cmd_set_mag_ref, "set magnetometer reference");
+  mutex_.unlock();
   return true;
 }
 
@@ -168,7 +170,7 @@ bool UmxDriver::handle_reset_service(const std::shared_ptr<umx_driver::srv::Rese
  * Uses the register accessors to grab data from the IMU, and populate
  * the ROS messages which are output.
  */
-void UmxDriver::publish_msgs(umx::Registers& r)
+void Um7Driver::publish_msgs(um7::Registers& r)
 {
   if (imu_pub_->get_subscription_count() > 0)
   {
@@ -320,8 +322,8 @@ void UmxDriver::publish_msgs(umx::Registers& r)
   }
 }
 
-UmxDriver::UmxDriver() : // const rclcpp::NodeOptions & options) :
-  rclcpp::Node("umx_driver"), // , options),
+Um7Driver::Um7Driver() : // const rclcpp::NodeOptions & options) :
+  rclcpp::Node("um7_driver"), // , options),
   axes_(OutputAxisOptions::DEFAULT)
 {
   // Load parameters
@@ -398,7 +400,7 @@ UmxDriver::UmxDriver() : // const rclcpp::NodeOptions & options) :
   temperature_pub_ = this->create_publisher<std_msgs::msg::Float32>("imu/temperature", 1);
 }
 
-void UmxDriver::update_loop(void)
+void Um7Driver::update_loop(void)
 {
   // Real Time Loop
   bool first_failure = true;
@@ -420,23 +422,24 @@ void UmxDriver::update_loop(void)
       first_failure = true;
       try
       {
-        sensor_.reset(new umx::Comms(&serial_));
+        sensor_.reset(new um7::Comms(&serial_));
         configure_sensor();
-        umx::Registers registers;
-        auto service = this->create_service<umx_driver::srv::Reset>("imu/reset",
-          std::bind(&UmxDriver::handle_reset_service, this, 
+        um7::Registers registers;
+        auto service = this->create_service<umx_driver::srv::Um7Reset>("imu/reset",
+          std::bind(&Um7Driver::handle_reset_service, this, 
           std::placeholders::_1, std::placeholders::_2));
 
         while (rclcpp::ok())
         {
+          mutex_.lock();
           // triggered by arrival of last message packet
           if (sensor_->receive(&registers) == TRIGGER_PACKET)
           {
             // Triggered by arrival of final message in group.
             imu_msg_.header.stamp = this->now(); 
             this->publish_msgs(registers);
-            //ros::spinOnce(); // TODO: did ROS 1 need spin once after publishing
           }
+          mutex_.unlock();
         }
       }
       catch(const std::exception& e)
@@ -457,7 +460,7 @@ void UmxDriver::update_loop(void)
     }
   }
 }
-}  // namespace umx
+}  // namespace um7
 
 /**
  * Node entry-point. Handles ROS setup, and serial port connection/reconnection.
@@ -465,7 +468,7 @@ void UmxDriver::update_loop(void)
 int main(int argc, char *argv[])
 {
   rclcpp::init(argc,argv);
-  auto node = std::make_shared<umx::UmxDriver>();
+  auto node = std::make_shared<um7::Um7Driver>();
 
   //start up a new thread that spins the node for service requests
   std::promise<void> stop_async_spinner;
@@ -477,10 +480,7 @@ int main(int argc, char *argv[])
       // node->quit();
     });
 
-  while (rclcpp::ok())
-  {
-    node->update_loop();
-  }
+  node->update_loop();
 
   stop_async_spinner.set_value();
   async_spinner_thread.join();

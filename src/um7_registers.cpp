@@ -1,12 +1,10 @@
 /**
  *
  *  \file
- *  \brief      Comms class definition. Does not manage the serial connection
- *              itself, but takes care of reading and writing to UM7.
+ *  \brief      Stub method from the Accessor class.
  *  \author     Mike Purvis <mpurvis@clearpathrobotics.com>
- *  \author     Hilary Luo <hluo@clearpathrobotics.com>
- *  \copyright  Copyright (c) 2023, Clearpath Robotics, Inc.
- * 
+ *  \copyright  Copyright (c) 2013, Clearpath Robotics, Inc.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33,61 +31,19 @@
  *
  */
 
-#ifndef UMX_COMMS_H_
-#define UMX_COMMS_H_
+#include "umx_driver/um7_registers.h"
 
-#include <stdint.h>
-#include <string>
-
-#include <arpa/inet.h>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/foreach.hpp>
-
-#include "rclcpp/rclcpp.hpp"
-
-#include "umx_driver/registers.h"
-#include "serial/serial.h"
-
-namespace umx
+namespace um7
 {
 
-class SerialTimeout : public std::exception {};
-
-class BadChecksum : public std::exception {};
-
-class Comms
+void* Accessor_::raw() const
 {
-public:
-  explicit Comms(serial::Serial* s) : serial_(s), first_spin_(true)
-  {
-  }
-
   /**
-   * Returns -1 if the serial port timed out before receiving a packet
-   * successfully, or if there was a bad checksum or any other error.
-   * Otherwise, returns the 8-bit register number of the successfully
-   * returned packet.
+   * This is ridiculous to have a whole source file for this tiny implementation,
+   * but it's necessary to resolve the otherwise circular dependency between the
+   * Registers and Accessor classes, when Registers contains Accessor instances
+   * and Accessor is a template class.
    */
-  int16_t receive(Registers* registers);
-
-  void send(const Accessor_& a) const;
-
-  bool sendWaitAck(const Accessor_& a);
-
-  static const uint8_t PACKET_HAS_DATA;
-  static const uint8_t PACKET_IS_BATCH;
-  static const uint8_t PACKET_BATCH_LENGTH_MASK;
-  static const uint8_t PACKET_BATCH_LENGTH_OFFSET;
-
-  static std::string checksum(const std::string& s);
-
-  static std::string message(uint8_t address, std::string data);
-
-private:
-  serial::Serial* serial_;
-  bool first_spin_;
-};
-}  // namespace umx
-
-#endif  // UMX_COMMS_H_
-
+  return &registers_->raw_[index];
+}
+}  // namespace um7

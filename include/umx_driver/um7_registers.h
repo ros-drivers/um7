@@ -33,8 +33,8 @@
  *
  */
 
-#ifndef UMX_REGISTERS_H_
-#define UMX_REGISTERS_H_
+#ifndef UM7_REGISTERS_H_
+#define UM7_REGISTERS_H_
 
 #if __APPLE__
 #include <machine/endian.h>
@@ -49,7 +49,7 @@
 #include <string>
 #include <stdexcept>
 
-#include "umx_driver/firmware_registers.h"
+#include "umx_driver/um7_firmware_registers.h"
 
 #define TO_RADIANS (M_PI / 180.0)
 #define TO_DEGREES (180.0 / M_PI)
@@ -59,7 +59,7 @@
 #define NUM_REGISTERS (DATA_REG_START_ADDRESS + DATA_ARRAY_SIZE)
 
 
-namespace umx
+namespace um7
 {
 
 inline void memcpy_network(void* dest, void* src, size_t count)
@@ -211,6 +211,6 @@ class Registers
 
   friend class Accessor_;
 };
-}  // namespace umx
+}  // namespace um7
 
-#endif  // UMX_REGISTERS_H_
+#endif  // UM7_REGISTERS_H_

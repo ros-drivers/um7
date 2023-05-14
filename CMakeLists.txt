@@ -7,6 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(Boost REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
@@ -24,21 +25,21 @@ include_directories(
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/Reset.srv"
+  "srv/Um7Reset.srv"
 )
 
 ament_export_dependencies(rosidl_default_runtime)
 
-add_executable(umx_bridge src/umx_bridge.cpp)
-target_compile_features(umx_bridge PUBLIC c_std_99 cxx_std_14)  # Require C99 and C++14
+add_executable(um7_driver src/um7_driver.cpp)
+target_compile_features(um7_driver PUBLIC c_std_99 cxx_std_14)  # Require C99 and C++14
 
-target_sources(umx_bridge
+target_sources(um7_driver
   PRIVATE
-  src/registers.cpp
-  src/comms.cpp
+  src/um7_registers.cpp
+  src/um7_comms.cpp
 )
 
-ament_target_dependencies(umx_bridge
+ament_target_dependencies(um7_driver
   geometry_msgs
   rclcpp
   sensor_msgs
@@ -48,13 +49,13 @@ ament_target_dependencies(umx_bridge
 
 rosidl_get_typesupport_target(cpp_typesupport_target
   ${PROJECT_NAME} rosidl_typesupport_cpp)
-target_link_libraries(umx_bridge "${cpp_typesupport_target}")
+target_link_libraries(um7_driver "${cpp_typesupport_target}")
 
 #############
 ## Install ##
 #############
 
-install(TARGETS umx_bridge
+install(TARGETS um7_driver
   DESTINATION lib/${PROJECT_NAME})
 
 #############

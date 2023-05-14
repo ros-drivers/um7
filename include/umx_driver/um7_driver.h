@@ -33,11 +33,12 @@
  *
  */
 
-#ifndef UMX_DRIVER_H_
-#define UMX_DRIVER_H_
+#ifndef UM7_DRIVER_H_
+#define UM7_DRIVER_H_
 
-#include <thread>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #include "geometry_msgs/msg/vector3_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -45,13 +46,13 @@
 #include "sensor_msgs/msg/magnetic_field.hpp"
 #include "serial/serial.h"
 #include "std_msgs/msg/float32.hpp"
-#include "umx_driver/comms.h"
-#include "umx_driver/registers.h"
-#include "umx_driver/srv/reset.hpp"
+#include "umx_driver/um7_comms.h"
+#include "umx_driver/um7_registers.h"
+#include "umx_driver/srv/um7_reset.hpp"
 
 //#include "std_msgs/msg/Header.h" // ?
 
-namespace umx
+namespace um7
 {
 
 namespace OutputAxisOptions
@@ -63,24 +64,24 @@ namespace OutputAxisOptions
 }
 typedef OutputAxisOptions::OutputAxisOption OutputAxisOption;
 
-class UmxDriver : public rclcpp::Node
+class Um7Driver : public rclcpp::Node
 {
 public:
-  UmxDriver(); // const rclcpp::NodeOptions & options);
+  Um7Driver(); // const rclcpp::NodeOptions & options);
 
   void update_loop(void);
 
 private:
-  void publish_msgs(umx::Registers& r);
+  void publish_msgs(um7::Registers& r);
 
   void configure_sensor();
 
   template<typename RegT>
-  void send_command(const umx::Accessor<RegT>& reg, std::string human_name);
+  void send_command(const um7::Accessor<RegT>& reg, std::string human_name);
 
   bool handle_reset_service(
-    const std::shared_ptr<umx_driver::srv::Reset::Request> req,
-    std::shared_ptr<umx_driver::srv::Reset::Response> resp);
+    const std::shared_ptr<umx_driver::srv::Um7Reset::Request> req,
+    std::shared_ptr<umx_driver::srv::Um7Reset::Response> resp);
 
   // ROS2 Interfaces
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
@@ -90,11 +91,13 @@ private:
 
   OutputAxisOption axes_;
   serial::Serial serial_;
-  std::shared_ptr<umx::Comms> sensor_;
+  std::shared_ptr<um7::Comms> sensor_;
   sensor_msgs::msg::Imu imu_msg_;
 
+    std::mutex mutex_;
+  
 };
 
-}  // namespace umx
+}  // namespace um7
 
-#endif  // UMX_DRIVER_H_
+#endif  // UM7_DRIVER_H_
