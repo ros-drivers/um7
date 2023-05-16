@@ -78,7 +78,7 @@ void Um7Driver::configure_sensor()
   // set the broadcast rate of the device
   int rate;
   this->get_parameter("update_rate", rate);
-  if (rate < 20 || rate > 255)
+  if (rate < 20 || rate > 60)
   {
     RCLCPP_WARN(this->get_logger(), "Potentially unsupported update rate of %d", rate);
   }
@@ -156,13 +156,19 @@ void Um7Driver::configure_sensor()
 bool Um7Driver::handle_reset_service(const std::shared_ptr<umx_driver::srv::Um7Reset::Request> req,
   std::shared_ptr<umx_driver::srv::Um7Reset::Response> resp)
 {
-  mutex_.lock();
+  RCLCPP_INFO(this->get_logger(), "Reset service called");
+  const std::lock_guard<std::mutex> lock(mutex_);
   (void)resp;
   um7::Registers r;
-  if (req->zero_gyros) send_command(r.cmd_zero_gyros, "zero gyroscopes");
-  if (req->reset_ekf) send_command(r.cmd_reset_ekf, "reset EKF");
-  if (req->set_mag_ref) send_command(r.cmd_set_mag_ref, "set magnetometer reference");
-  mutex_.unlock();
+  try {
+    if (req->zero_gyros) send_command(r.cmd_zero_gyros, "zero gyroscopes");
+    if (req->reset_ekf) send_command(r.cmd_reset_ekf, "reset EKF");
+    if (req->set_mag_ref) send_command(r.cmd_set_mag_ref, "set magnetometer reference");
+  }
+  catch(const std::exception& e) {
+    RCLCPP_ERROR_STREAM(this->get_logger(), e.what());
+  }
+  RCLCPP_INFO(this->get_logger(), "Reset service completed");
   return true;
 }
 
@@ -172,6 +178,9 @@ bool Um7Driver::handle_reset_service(const std::shared_ptr<umx_driver::srv::Um7R
  */
 void Um7Driver::publish_msgs(um7::Registers& r)
 {
+  RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Publishing ROS 2 messages");
+  imu_msg_.header.stamp = this->now();
+  
   if (imu_pub_->get_subscription_count() > 0)
   {
     switch (axes_)
@@ -322,8 +331,8 @@ void Um7Driver::publish_msgs(um7::Registers& r)
   }
 }
 
-Um7Driver::Um7Driver() : // const rclcpp::NodeOptions & options) :
-  rclcpp::Node("um7_driver"), // , options),
+Um7Driver::Um7Driver() :
+  rclcpp::Node("um7_driver"),
   axes_(OutputAxisOptions::DEFAULT)
 {
   // Load parameters
@@ -338,7 +347,7 @@ Um7Driver::Um7Driver() : // const rclcpp::NodeOptions & options) :
 
   serial_.setPort(port);
   serial_.setBaudrate(baud);
-  serial::Timeout to = serial::Timeout(50, 50, 0, 50, 0);
+  serial::Timeout to = serial::Timeout(100, 100, 0, 100, 0);
   serial_.setTimeout(to);
 
   imu_msg_.header.frame_id = this->declare_parameter<std::string>("frame_id", "imu_link");
@@ -408,6 +417,8 @@ void Um7Driver::update_loop(void)
   {
     try
     {
+      if (serial_.isOpen()) 
+        serial_.close();
       serial_.open();
     }
     catch (const serial::IOException& e)
@@ -431,15 +442,17 @@ void Um7Driver::update_loop(void)
 
         while (rclcpp::ok())
         {
-          mutex_.lock();
+          int16_t input = 0;
+          {
+            const std::lock_guard<std::mutex> lock(mutex_);
+            input = sensor_->receive(&registers);
+          }
           // triggered by arrival of last message packet
-          if (sensor_->receive(&registers) == TRIGGER_PACKET)
+          if (input == TRIGGER_PACKET)
           {
             // Triggered by arrival of final message in group.
-            imu_msg_.header.stamp = this->now(); 
-            this->publish_msgs(registers);
+            publish_msgs(registers);
           }
-          mutex_.unlock();
         }
       }
       catch(const std::exception& e)
@@ -447,7 +460,7 @@ void Um7Driver::update_loop(void)
         if (serial_.isOpen()) serial_.close();
         RCLCPP_ERROR_STREAM(this->get_logger(), e.what());
         RCLCPP_INFO(this->get_logger(), "Attempting reconnection after error.");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        rclcpp::sleep_for(std::chrono::nanoseconds(1000000000));
       }
     }
     else
@@ -477,10 +490,16 @@ int main(int argc, char *argv[])
       rclcpp::executors::SingleThreadedExecutor executor;
       executor.add_node(node);
       executor.spin_until_future_complete(stop_token);
-      // node->quit();
     });
 
-  node->update_loop();
+  while(rclcpp::ok()) {
+    try {
+      node->update_loop();
+    }
+    catch(const std::exception& e) {
+      RCLCPP_ERROR_STREAM(node->get_logger(), e.what());
+    }
+  }
 
   stop_async_spinner.set_value();
   async_spinner_thread.join();

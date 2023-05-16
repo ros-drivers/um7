@@ -1,4 +1,4 @@
-#include "um7/registers.h"
+#include "umx_driver/um7_registers.h"
 #include <gtest/gtest.h>
 
 #include <arpa/inet.h>

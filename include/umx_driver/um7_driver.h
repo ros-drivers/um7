@@ -93,8 +93,7 @@ private:
   serial::Serial serial_;
   std::shared_ptr<um7::Comms> sensor_;
   sensor_msgs::msg::Imu imu_msg_;
-
-    std::mutex mutex_;
+  std::mutex mutex_;
   
 };
 

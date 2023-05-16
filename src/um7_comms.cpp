@@ -48,10 +48,10 @@ int16_t Comms::receive(Registers* registers = NULL)
   try
   {
     size_t available = serial_->available();
-    if (available > 255)
+    if (available > 500)
     {
       RCLCPP_WARN_STREAM(rclcpp::get_logger("um7_driver"), "Serial read buffer is " 
-                         << available << ", now flushing in an attempt to catch up."); // TODO: ROS1
+                         << available << ", now flushing in an attempt to catch up.");
       serial_->flushInput();
     }
 
@@ -70,7 +70,7 @@ int16_t Comms::receive(Registers* registers = NULL)
     {
       // Optimism fail. Search the serial stream for a header.
       std::string snp;
-      serial_->readline(snp, 96, "snp");
+      serial_->readline(snp, 500, "snp");
       if (!boost::algorithm::ends_with(snp, "snp")) throw SerialTimeout();
       if ((snp.length() > 3) && !first_spin_)
       {
@@ -91,11 +91,11 @@ int16_t Comms::receive(Registers* registers = NULL)
       if (type & PACKET_IS_BATCH)
       {
         data_length = (type >> PACKET_BATCH_LENGTH_OFFSET) & PACKET_BATCH_LENGTH_MASK;
-        RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Received packet %02x with batched (%d) data.", address, data_length); // TODO: ROS1
+        RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Received packet %02x with batched (%d) data.", address, data_length);
       }
       else
       {
-        RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Received packet %02x with non-batched data.", address); // TODO: ROS1
+        RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Received packet %02x with non-batched data.", address);
       }
 
       // Read data bytes initially into a buffer so that we can compute the checksum.
@@ -107,7 +107,7 @@ int16_t Comms::receive(Registers* registers = NULL)
     }
     else
     {
-      RCLCPP_INFO(rclcpp::get_logger("um7_driver"), "Received packet %02x without data.", address); // TODO: ROS1
+      RCLCPP_INFO(rclcpp::get_logger("um7_driver"), "Received packet %02x without data.", address);
     }
 
     // Compare computed checksum with transmitted value.
@@ -134,11 +134,11 @@ int16_t Comms::receive(Registers* registers = NULL)
   }
   catch(const SerialTimeout& e)
   {
-    RCLCPP_WARN(rclcpp::get_logger("um7_driver"), "Timed out waiting for packet from device."); // TODO: ROS1
+    RCLCPP_WARN(rclcpp::get_logger("um7_driver"), "Timed out waiting for packet from device.");
   }
   catch(const BadChecksum& e)
   {
-    RCLCPP_WARN(rclcpp::get_logger("um7_driver"), "Discarding packet due to bad checksum."); // TODO: ROS1
+    RCLCPP_WARN(rclcpp::get_logger("um7_driver"), "Discarding packet due to bad checksum.");
   }
   return -1;
 }
@@ -151,7 +151,7 @@ std::string Comms::checksum(const std::string& s)
     checksum += ch;
   }
   checksum = htons(checksum);
-  RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Computed checksum on string of length %zd as %04x.", s.length(), checksum); // TODO: ROS1
+  RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Computed checksum on string of length %zd as %04x.", s.length(), checksum);
   std::string out(2, 0);
   memcpy(&out[0], &checksum, 2);
   return out;
@@ -176,7 +176,7 @@ std::string Comms::message(uint8_t address, std::string data)
   std::string c = checksum(output);
   ss << c;
   output = ss.str();
-  RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Generated message %02x of overall length %zd.", address, output.length()); // TODO: ROS1
+  RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Generated message %02x of overall length %zd.", address, output.length());
   return output;
 }
 
@@ -198,7 +198,7 @@ bool Comms::sendWaitAck(const Accessor_& a)
       int16_t received = receive();
       if (received == a.index)
       {
-        RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Message %02x ack received.", received); // TODO: ROS1
+        RCLCPP_DEBUG(rclcpp::get_logger("um7_driver"), "Message %02x ack received.", received);
         return true;
       }
       else if (received == -1)

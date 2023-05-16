@@ -1,5 +1,5 @@
-#include "um7/comms.h"
-#include "um7/registers.h"
+#include "umx_driver/um7_comms.h"
+#include "umx_driver/um7_registers.h"
 #include "serial/serial.h"
 #include <gtest/gtest.h>
 #include <fcntl.h>
@@ -19,9 +19,9 @@ protected:
     ASSERT_NE(-1, grantpt(master_fd));
     ASSERT_NE(-1, unlockpt(master_fd));
     ASSERT_TRUE((ser_name = ptsname(master_fd)) != NULL);
-    ser.setPort(ser_name);
-    ser.open();
-    ASSERT_TRUE(ser.isOpen()) << "Couldn't open Serial connection to pseudoterminal.";
+    serial_.setPort(ser_name);
+    serial_.open();
+    ASSERT_TRUE(serial_.isOpen()) << "Couldn't open Serial connection to pseudoterminal.";
   }
 
   void write_serial(const std::string& msg)
@@ -31,11 +31,11 @@ protected:
 
   virtual void TearDown()
   {
-    ser.close();
+    serial_.close();
     close(master_fd);
   }
 
-  serial::Serial ser;
+  serial::Serial serial_;
 
 private:
   int master_fd;
@@ -48,7 +48,7 @@ TEST_F(FakeSerial, basic_message_rx)
   std::string msg(um7::Comms::message(DREG_MAG_RAW_XY, std::string("\x1\x2\x3\x4")));
   write_serial(msg);
 
-  um7::Comms sensor(&ser);
+  um7::Comms sensor(&serial_);
   um7::Registers registers;
   ASSERT_EQ(DREG_MAG_RAW_XY, sensor.receive(&registers)) << "Didn't return ID of arriving message.";
   EXPECT_EQ(0x0102, registers.mag_raw.get(0));
@@ -60,7 +60,7 @@ TEST_F(FakeSerial, batch_message_rx)
   std::string msg(um7::Comms::message(DREG_ACCEL_RAW_XY, std::string("\x5\x6\x7\x8\x9\xa\0\0", 8)));
   write_serial(msg);
 
-  um7::Comms sensor(&ser);
+  um7::Comms sensor(&serial_);
   um7::Registers registers;
   ASSERT_EQ(DREG_ACCEL_RAW_XY, sensor.receive(&registers)) << "Didn't return ID of arriving message.";
   EXPECT_EQ(0x0506, registers.accel_raw.get(0));
@@ -75,7 +75,7 @@ TEST_F(FakeSerial, bad_checksum_message_rx)
   msg[msg.length() - 1]++;
   write_serial(msg);
 
-  um7::Comms sensor(&ser);
+  um7::Comms sensor(&serial_);
   um7::Registers registers;
   EXPECT_EQ(-1, sensor.receive(&registers)) << "Didn't properly ignore bad checksum message.";
 }
@@ -87,7 +87,7 @@ TEST_F(FakeSerial, garbage_bytes_preceeding_message_rx)
   msg = "ssssssnsnsns" + msg;
   write_serial(msg);
 
-  um7::Comms sensor(&ser);
+  um7::Comms sensor(&serial_);
   EXPECT_EQ(CONFIG_REG_START_ADDRESS, sensor.receive(NULL)) << "Didn't handle garbage prepended to message.";
 }
 
@@ -95,7 +95,7 @@ TEST_F(FakeSerial, timeout_message_rx)
 {
   std::string msg("snp\x12\x45");
   write_serial(msg);
-  um7::Comms sensor(&ser);
+  um7::Comms sensor(&serial_);
   EXPECT_EQ(-1, sensor.receive(NULL)) << "Didn't properly time out in the face of a partial message.";
 }
 
