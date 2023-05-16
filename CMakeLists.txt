@@ -25,10 +25,28 @@ include_directories(
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/Um6Reset.srv"
   "srv/Um7Reset.srv"
 )
 
 ament_export_dependencies(rosidl_default_runtime)
+
+add_executable(um6_driver src/um6_driver.cpp)
+target_compile_features(um6_driver PUBLIC c_std_99 cxx_std_14)  # Require C99 and C++14
+
+target_sources(um6_driver
+  PRIVATE
+  src/um6_registers.cpp
+  src/um6_comms.cpp
+)
+
+ament_target_dependencies(um6_driver
+  geometry_msgs
+  rclcpp
+  sensor_msgs
+  serial
+  std_msgs
+)
 
 add_executable(um7_driver src/um7_driver.cpp)
 target_compile_features(um7_driver PUBLIC c_std_99 cxx_std_14)  # Require C99 and C++14
@@ -49,11 +67,15 @@ ament_target_dependencies(um7_driver
 
 rosidl_get_typesupport_target(cpp_typesupport_target
   ${PROJECT_NAME} rosidl_typesupport_cpp)
+target_link_libraries(um6_driver "${cpp_typesupport_target}")
 target_link_libraries(um7_driver "${cpp_typesupport_target}")
 
 #############
 ## Install ##
 #############
+
+install(TARGETS um6_driver
+  DESTINATION lib/${PROJECT_NAME})
 
 install(TARGETS um7_driver
   DESTINATION lib/${PROJECT_NAME})

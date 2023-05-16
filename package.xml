@@ -4,7 +4,7 @@
   <name>umx_driver</name>
   <version>0.0.1</version>
   <description>The umx_driver package provides a C++ implementation of the CH Robotics serial protocol, and a
-    corresponding ROS 2 node for publishing standard ROS orientation topics from a UM7.</description>
+    corresponding ROS 2 node for publishing standard ROS orientation topics from a UM6 or UM7.</description>
 
   <maintainer email="dgmiller@ncsu.edu">Daniel Miller</maintainer>
   <maintainer email="tbaltovski@clearpathrobotics.com">Tony Baltovski</maintainer>  
