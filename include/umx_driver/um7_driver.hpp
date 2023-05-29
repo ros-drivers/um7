@@ -33,9 +33,12 @@
  *
  */
 
-#ifndef UM7_DRIVER_H_
-#define UM7_DRIVER_H_
+// Copyright (c) 2023, Clearpath Robotics, Inc.
 
+#ifndef UMX_DRIVER__UM7_DRIVER_HPP_
+#define UMX_DRIVER__UM7_DRIVER_HPP_
+
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -46,38 +49,36 @@
 #include "sensor_msgs/msg/magnetic_field.hpp"
 #include "serial/serial.h"
 #include "std_msgs/msg/float32.hpp"
-#include "umx_driver/um7_comms.h"
-#include "umx_driver/um7_registers.h"
+#include "umx_driver/um7_comms.hpp"
+#include "umx_driver/um7_registers.hpp"
 #include "umx_driver/srv/um7_reset.hpp"
-
-//#include "std_msgs/msg/Header.h" // ?
 
 namespace um7
 {
 
 namespace OutputAxisOptions
 {
-  enum OutputAxisOption
-  {
-    DEFAULT, ENU, ROBOT_FRAME
-  };
+enum OutputAxisOption
+{
+  DEFAULT, ENU, ROBOT_FRAME
+};
 }
 typedef OutputAxisOptions::OutputAxisOption OutputAxisOption;
 
 class Um7Driver : public rclcpp::Node
 {
 public:
-  Um7Driver(); // const rclcpp::NodeOptions & options);
+  Um7Driver();
 
   void update_loop(void);
 
 private:
-  void publish_msgs(um7::Registers& r);
+  void publish_msgs(um7::Registers & r);
 
   void configure_sensor();
 
   template<typename RegT>
-  void send_command(const um7::Accessor<RegT>& reg, std::string human_name);
+  void send_command(const um7::Accessor<RegT> & reg, std::string human_name);
 
   bool handle_reset_service(
     const std::shared_ptr<umx_driver::srv::Um7Reset::Request> req,
@@ -94,9 +95,7 @@ private:
   std::shared_ptr<um7::Comms> sensor_;
   sensor_msgs::msg::Imu imu_msg_;
   std::mutex mutex_;
-  
 };
-
 }  // namespace um7
 
-#endif  // UM7_DRIVER_H_
+#endif  // UMX_DRIVER__UM7_DRIVER_HPP_

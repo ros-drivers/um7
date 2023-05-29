@@ -1,4 +1,4 @@
-um7
+um6 / um7
 ===
 [![Build Status](https://travis-ci.org/ros-drivers/um7.svg?branch=indigo-devel)](https://travis-ci.org/ros-drivers/um7)
 

@@ -6,7 +6,7 @@
  *  \author     Mike Purvis <mpurvis@clearpathrobotics.com>
  *  \author     Hilary Luo <hluo@clearpathrobotics.com>
  *  \copyright  Copyright (c) 2023, Clearpath Robotics, Inc.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -33,8 +33,8 @@
  *
  */
 
-#ifndef UM6_COMMS_H
-#define UM6_COMMS_H
+#ifndef UMX_DRIVER__UM6_COMMS_HPP_
+#define UMX_DRIVER__UM6_COMMS_HPP_
 
 #include <stdint.h>
 #include <string>
@@ -45,7 +45,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "umx_driver/um6_registers.h"
+#include "umx_driver/um6_registers.hpp"
 #include "serial/serial.h"
 
 namespace um6
@@ -58,7 +58,8 @@ class BadChecksum : public std::exception {};
 class Comms
 {
 public:
-  explicit Comms(serial::Serial* s) : serial_(s), first_spin_(true)
+  explicit Comms(serial::Serial * s)
+  : serial_(s), first_spin_(true)
   {
   }
 
@@ -68,26 +69,25 @@ public:
    * Otherwise, returns the 8-bit register number of the successfully
    * returned packet.
    */
-  int16_t receive(Registers* r);
+  int16_t receive(Registers * r);
 
-  void send(const Accessor_& a) const;
+  void send(const Accessor_ & a) const;
 
-  bool sendWaitAck(const Accessor_& a);
+  bool sendWaitAck(const Accessor_ & a);
 
   static const uint8_t PACKET_HAS_DATA;
   static const uint8_t PACKET_IS_BATCH;
   static const uint8_t PACKET_BATCH_LENGTH_MASK;
   static const uint8_t PACKET_BATCH_LENGTH_OFFSET;
 
-  static std::string checksum(const std::string& s);
+  static std::string checksum(const std::string & s);
 
   static std::string message(uint8_t address, std::string data);
 
 private:
-  serial::Serial* serial_;
+  serial::Serial * serial_;
   bool first_spin_;
 };
 }  // namespace um6
 
-#endif  // UM6_COMMS_H
-
+#endif  // UMX_DRIVER__UM6_COMMS_HPP_

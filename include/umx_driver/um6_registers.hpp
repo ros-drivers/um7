@@ -33,8 +33,8 @@
  *
  */
 
-#ifndef UM6_REGISTERS_H
-#define UM6_REGISTERS_H
+#ifndef UMX_DRIVER__UM6_REGISTERS_HPP_
+#define UMX_DRIVER__UM6_REGISTERS_HPP_
 
 #if __APPLE__
 #include <machine/endian.h>
@@ -49,7 +49,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "umx_driver/um6_firmware_registers.h"
+#include "umx_driver/um6_firmware_registers.hpp"
 
 #define TO_RADIANS (M_PI / 180.0)
 #define TO_DEGREES (180.0 / M_PI)
@@ -62,14 +62,13 @@
 namespace um6
 {
 
-inline void memcpy_network(void* dest, void* src, size_t count)
+inline void memcpy_network(void * dest, void * src, size_t count)
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-  uint8_t* d = reinterpret_cast<uint8_t*>(dest);
-  uint8_t* s = reinterpret_cast<uint8_t*>(src);
-  for (uint8_t i = 0; i < count; i++)
-  {
-    d[i] = s[count - (i+1)];
+  uint8_t * d = reinterpret_cast<uint8_t *>(dest);
+  uint8_t * s = reinterpret_cast<uint8_t *>(src);
+  for (uint8_t i = 0; i < count; i++) {
+    d[i] = s[count - (i + 1)];
   }
 #else
   // Copy bytes without reversing.
@@ -93,13 +92,12 @@ class Registers;
 class Accessor_
 {
 public:
-  Accessor_(Registers* registers, uint8_t register_index,
-            uint8_t register_width, uint8_t array_length)
-    : index(register_index), width(register_width),
-      length(array_length), registers_(registers)
+  Accessor_(
+    Registers * registers, uint8_t register_index, uint8_t register_width, uint8_t array_length)
+  : index(register_index), width(register_width), length(array_length), registers_(registers)
   {}
 
-  void* raw() const;
+  void * raw() const;
 
   /**
    * Number/address of the register in the array of uint32s which is
@@ -116,20 +114,23 @@ public:
   const uint16_t length;
 
 private:
-  Registers* registers_;
+  Registers * registers_;
 };
 
 template<typename RegT>
 class Accessor : public Accessor_
 {
 public:
-  Accessor(Registers* registers, uint8_t register_index, uint8_t array_length = 0, double scale_factor = 1.0)
-    : Accessor_(registers, register_index, sizeof(RegT), array_length), scale_(scale_factor)
-  {}
+  Accessor(
+    Registers * registers, uint8_t register_index, uint8_t array_length = 0,
+    double scale_factor = 1.0)
+  : Accessor_(registers, register_index, sizeof(RegT), array_length), scale_(scale_factor)
+  {
+  }
 
   RegT get(uint8_t field) const
   {
-    RegT* raw_ptr = reinterpret_cast<RegT*>(raw());
+    RegT * raw_ptr = reinterpret_cast<RegT *>(raw());
     RegT value;
     memcpy_network(&value, raw_ptr + field, sizeof(value));
     return value;
@@ -142,7 +143,7 @@ public:
 
   void set(uint8_t field, RegT value) const
   {
-    RegT* raw_ptr = reinterpret_cast<RegT*>(raw());
+    RegT * raw_ptr = reinterpret_cast<RegT *>(raw());
     memcpy_network(raw_ptr + field, &value, sizeof(value));
   }
 
@@ -158,8 +159,8 @@ private:
 class Registers
 {
 public:
-  Registers() :
-    gyro_raw(this, UM6_GYRO_RAW_XY, 3),
+  Registers()
+  : gyro_raw(this, UM6_GYRO_RAW_XY, 3),
     accel_raw(this, UM6_ACCEL_RAW_XY, 3),
     mag_raw(this, UM6_MAG_RAW_XY, 3),
     gyro(this, UM6_GYRO_PROC_XY, 3, 0.0610352 * TO_RADIANS),
@@ -186,8 +187,7 @@ public:
   }
 
   // Data
-  const Accessor<int16_t> gyro_raw, accel_raw, mag_raw,
-        gyro, accel, mag, euler, quat;
+  const Accessor<int16_t> gyro_raw, accel_raw, mag_raw, gyro, accel, mag, euler, quat;
   const Accessor<float> covariance, temperature;
 
   // Configs
@@ -196,13 +196,11 @@ public:
   const Accessor<int16_t> gyro_bias, accel_bias, mag_bias;
 
   // Commands
-  const Accessor<uint32_t> cmd_zero_gyros, cmd_reset_ekf,
-        cmd_set_accel_ref, cmd_set_mag_ref;
+  const Accessor<uint32_t> cmd_zero_gyros, cmd_reset_ekf, cmd_set_accel_ref, cmd_set_mag_ref;
 
   void write_raw(uint8_t register_index, std::string data)
   {
-    if ((register_index - 1) + (data.length()/4 - 1) >= NUM_REGISTERS)
-    {
+    if ((register_index - 1) + (data.length() / 4 - 1) >= NUM_REGISTERS) {
       throw std::range_error("Index and length write beyond boundaries of register array.");
     }
     memcpy(&raw_[register_index], data.c_str(), data.length());
@@ -215,4 +213,4 @@ private:
 };
 }  // namespace um6
 
-#endif  // UM6_REGISTERS_H
+#endif  // UMX_DRIVER__UM6_REGISTERS_HPP_

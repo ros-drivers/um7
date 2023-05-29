@@ -32,9 +32,12 @@
  *
  */
 
-#ifndef UM6_DRIVER_H_
-#define UM6_DRIVER_H_
+// Copyright (c) 2023, Clearpath Robotics, Inc.
 
+#ifndef UMX_DRIVER__UM6_DRIVER_HPP_
+#define UMX_DRIVER__UM6_DRIVER_HPP_
+
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -45,11 +48,9 @@
 #include "sensor_msgs/msg/magnetic_field.hpp"
 #include "serial/serial.h"
 #include "std_msgs/msg/float32.hpp"
-#include "umx_driver/um6_comms.h"
-#include "umx_driver/um6_registers.h"
+#include "umx_driver/um6_comms.hpp"
+#include "umx_driver/um6_registers.hpp"
 #include "umx_driver/srv/um6_reset.hpp"
-
-//#include "std_msgs/msg/Header.h" // ?
 
 namespace um6
 {
@@ -57,17 +58,17 @@ namespace um6
 class Um6Driver : public rclcpp::Node
 {
 public:
-  Um6Driver(); // const rclcpp::NodeOptions & options);
+  Um6Driver();
 
   void update_loop(void);
 
 private:
-  void publish_msgs(um6::Registers& r);
+  void publish_msgs(um6::Registers & r);
 
   void configure_sensor();
 
   template<typename RegT>
-  void send_command(const um6::Accessor<RegT>& reg, std::string human_name);
+  void send_command(const um6::Accessor<RegT> & reg, std::string human_name);
 
   bool handle_reset_service(
     const std::shared_ptr<umx_driver::srv::Um6Reset::Request> req,
@@ -84,9 +85,7 @@ private:
   sensor_msgs::msg::Imu imu_msg_;
   std::mutex mutex_;
   bool tf_ned_to_enu_;
-  
 };
-
 }  // namespace um6
 
-#endif  // UM6_DRIVER_H_
+#endif  // UMX_DRIVER__UM6_DRIVER_HPP_

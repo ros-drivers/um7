@@ -33,8 +33,8 @@
  *
  */
 
-#ifndef UM7_REGISTERS_H_
-#define UM7_REGISTERS_H_
+#ifndef UMX_DRIVER__UM7_REGISTERS_HPP_
+#define UMX_DRIVER__UM7_REGISTERS_HPP_
 
 #if __APPLE__
 #include <machine/endian.h>
@@ -49,7 +49,7 @@
 #include <string>
 #include <stdexcept>
 
-#include "umx_driver/um7_firmware_registers.h"
+#include "umx_driver/um7_firmware_registers.hpp"
 
 #define TO_RADIANS (M_PI / 180.0)
 #define TO_DEGREES (180.0 / M_PI)
@@ -62,14 +62,13 @@
 namespace um7
 {
 
-inline void memcpy_network(void* dest, void* src, size_t count)
+inline void memcpy_network(void * dest, void * src, size_t count)
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-  uint8_t* d = reinterpret_cast<uint8_t*>(dest);
-  uint8_t* s = reinterpret_cast<uint8_t*>(src);
-  for (uint8_t i = 0; i < count; i++)
-  {
-    d[i] = s[count - (i+1)];
+  uint8_t * d = reinterpret_cast<uint8_t *>(dest);
+  uint8_t * s = reinterpret_cast<uint8_t *>(src);
+  for (uint8_t i = 0; i < count; i++) {
+    d[i] = s[count - (i + 1)];
   }
 #else
   // Copy bytes without reversing.
@@ -93,13 +92,12 @@ class Registers;
 class Accessor_
 {
 public:
-  Accessor_(Registers* registers, uint8_t register_index,
-            uint8_t register_width, uint8_t array_length)
-    : index(register_index), width(register_width),
-      length(array_length), registers_(registers)
+  Accessor_(
+    Registers * registers, uint8_t register_index, uint8_t register_width, uint8_t array_length)
+  : index(register_index), width(register_width), length(array_length), registers_(registers)
   {}
 
-  void* raw() const;
+  void * raw() const;
 
   /**
    * Number/address of the register in the array of uint32s which is
@@ -116,101 +114,102 @@ public:
   const uint16_t length;
 
 private:
-  Registers* registers_;
+  Registers * registers_;
 };
 
 template<typename RegT>
 class Accessor : public Accessor_
 {
-  public:
-    Accessor(Registers* registers, uint8_t register_index, uint8_t array_length = 0, double scale_factor = 1.0)
-      : Accessor_(registers, register_index, sizeof(RegT), array_length), scale_(scale_factor)
-    {}
+public:
+  Accessor(
+    Registers * registers, uint8_t register_index, uint8_t array_length = 0,
+    double scale_factor = 1.0)
+  : Accessor_(registers, register_index, sizeof(RegT), array_length), scale_(scale_factor)
+  {}
 
-    RegT get(uint8_t field) const
-    {
-      RegT* raw_ptr = reinterpret_cast<RegT*>(raw());
-      RegT value;
-      memcpy_network(&value, raw_ptr + field, sizeof(value));
-      return value;
-    }
+  RegT get(uint8_t field) const
+  {
+    RegT * raw_ptr = reinterpret_cast<RegT *>(raw());
+    RegT value;
+    memcpy_network(&value, raw_ptr + field, sizeof(value));
+    return value;
+  }
 
-    double get_scaled(uint16_t field) const
-    {
-      return get(field) * scale_;
-    }
+  double get_scaled(uint16_t field) const
+  {
+    return get(field) * scale_;
+  }
 
-    void set(uint8_t field, RegT value) const
-    {
-      RegT* raw_ptr = reinterpret_cast<RegT*>(raw());
-      memcpy_network(raw_ptr + field, &value, sizeof(value));
-    }
+  void set(uint8_t field, RegT value) const
+  {
+    RegT * raw_ptr = reinterpret_cast<RegT *>(raw());
+    memcpy_network(raw_ptr + field, &value, sizeof(value));
+  }
 
-    void set_scaled(uint16_t field, double value) const
-    {
-      set(field, value / scale_);
-    }
+  void set_scaled(uint16_t field, double value) const
+  {
+    set(field, value / scale_);
+  }
 
-  private:
-    const double scale_;
+private:
+  const double scale_;
 };
 
 class Registers
 {
-  public:
-    Registers() :
-      gyro_raw(this, DREG_GYRO_RAW_XY, 3),
-      accel_raw(this, DREG_ACCEL_RAW_XY, 3),
-      euler(this, DREG_EULER_PHI_THETA, 3, 0.0109863 * TO_RADIANS),
-      mag_raw(this, DREG_MAG_RAW_XY, 3),
-      quat(this, DREG_QUAT_AB, 4, 0.0000335693),
-      gyro(this, DREG_GYRO_PROC_X, 3, 1.0 * TO_RADIANS),
-      accel(this, DREG_ACCEL_PROC_X, 3, 9.80665),
-      mag(this, DREG_MAG_PROC_X, 3, 1.0),
-      temperature(this, DREG_TEMPERATURE, 1),
-      communication(this, CREG_COM_SETTINGS, 1),
-      misc_config(this, CREG_MISC_SETTINGS, 1),
-      status(this, CREG_COM_RATES6, 1),
-      comrate2(this, CREG_COM_RATES2, 1),
-      comrate4(this, CREG_COM_RATES4, 1),
-      comrate5(this, CREG_COM_RATES5, 1),
-      comrate6(this, CREG_COM_RATES6, 1),
-      mag_bias(this, CREG_MAG_BIAS_X, 3),
-      cmd_zero_gyros(this, CHR_ZERO_GYROS),
-      cmd_reset_ekf(this, CHR_RESET_EKF),
-      cmd_set_mag_ref(this, CHR_SET_MAG_REFERENCE)
-    {
-      memset(raw_, 0, sizeof(raw_));
+public:
+  Registers()
+  : gyro_raw(this, DREG_GYRO_RAW_XY, 3),
+    accel_raw(this, DREG_ACCEL_RAW_XY, 3),
+    euler(this, DREG_EULER_PHI_THETA, 3, 0.0109863 * TO_RADIANS),
+    mag_raw(this, DREG_MAG_RAW_XY, 3),
+    quat(this, DREG_QUAT_AB, 4, 0.0000335693),
+    gyro(this, DREG_GYRO_PROC_X, 3, 1.0 * TO_RADIANS),
+    accel(this, DREG_ACCEL_PROC_X, 3, 9.80665),
+    mag(this, DREG_MAG_PROC_X, 3, 1.0),
+    temperature(this, DREG_TEMPERATURE, 1),
+    communication(this, CREG_COM_SETTINGS, 1),
+    misc_config(this, CREG_MISC_SETTINGS, 1),
+    status(this, CREG_COM_RATES6, 1),
+    comrate2(this, CREG_COM_RATES2, 1),
+    comrate4(this, CREG_COM_RATES4, 1),
+    comrate5(this, CREG_COM_RATES5, 1),
+    comrate6(this, CREG_COM_RATES6, 1),
+    mag_bias(this, CREG_MAG_BIAS_X, 3),
+    cmd_zero_gyros(this, CHR_ZERO_GYROS),
+    cmd_reset_ekf(this, CHR_RESET_EKF),
+    cmd_set_mag_ref(this, CHR_SET_MAG_REFERENCE)
+  {
+    memset(raw_, 0, sizeof(raw_));
+  }
+
+  // Data
+  const Accessor<int16_t> gyro_raw, accel_raw, euler, mag_raw, quat;
+
+  const Accessor<float> gyro, accel, mag, temperature;
+
+  // Configs
+  const Accessor<uint32_t> communication, misc_config, status, comrate2,
+    comrate4, comrate5, comrate6;
+
+  const Accessor<float> mag_bias;
+
+  // Commands
+  const Accessor<uint32_t> cmd_zero_gyros, cmd_reset_ekf, cmd_set_mag_ref;
+
+  void write_raw(uint8_t register_index, std::string data)
+  {
+    if ((register_index - 1) + (data.length() / 4 - 1) >= NUM_REGISTERS) {
+      throw std::range_error("Index and length write beyond boundaries of register array.");
     }
+    memcpy(&raw_[register_index], data.c_str(), data.length());
+  }
 
-    // Data
-    const Accessor<int16_t> gyro_raw, accel_raw, euler, mag_raw, quat;
-
-    const Accessor<float> gyro, accel, mag, temperature;
-
-    // Configs
-    const Accessor<uint32_t> communication, misc_config, status, comrate2,
-                            comrate4, comrate5, comrate6;
-
-    const Accessor<float>  mag_bias;
-
-    // Commands
-    const Accessor<uint32_t> cmd_zero_gyros, cmd_reset_ekf, cmd_set_mag_ref;
-
-    void write_raw(uint8_t register_index, std::string data)
-    {
-      if ((register_index - 1) + (data.length()/4 - 1) >= NUM_REGISTERS)
-      {
-        throw std::range_error("Index and length write beyond boundaries of register array.");
-      }
-      memcpy(&raw_[register_index], data.c_str(), data.length());
-    }
-
-  private:
-    uint32_t raw_[NUM_REGISTERS];
+private:
+  uint32_t raw_[NUM_REGISTERS];
 
   friend class Accessor_;
 };
 }  // namespace um7
 
-#endif  // UM7_REGISTERS_H_
+#endif  // UMX_DRIVER__UM7_REGISTERS_HPP_

@@ -31,12 +31,12 @@
  *
  */
 
-#include "umx_driver/um6_registers.h"
+#include "umx_driver/um6_registers.hpp"
 
 namespace um6
 {
 
-void* Accessor_::raw() const
+void * Accessor_::raw() const
 {
   /**
    * This is ridiculous to have a whole source file for this tiny implementation,

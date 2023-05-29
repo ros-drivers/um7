@@ -1,4 +1,14 @@
-#include "umx_driver/um7_registers.h"
+/**
+ *
+ *  \file
+ *  \brief      Test registers for the umx_driver
+ *  \author     Mike Purvis <mpurvis@clearpathrobotics.com>
+ *  \author     Hilary Luo <hluo@clearpathrobotics.com>
+ *  \copyright  Copyright (c) 2023, Clearpath Robotics, Inc.
+ *
+ */
+
+#include "umx_driver/um7_registers.hpp"
 #include <gtest/gtest.h>
 
 #include <arpa/inet.h>
@@ -7,7 +17,7 @@
 TEST(ByteOrder, compare_with_htons)
 {
   // Arbitrary, just try a selection of values.
-  for(uint16_t host_num = 0; host_num < 50000; host_num += 71) { 
+  for (uint16_t host_num = 0; host_num < 50000; host_num += 71) {
     uint16_t net_num = htons(host_num);
     uint16_t memcpy_num = 0;
     um7::memcpy_network(&memcpy_num, &host_num, sizeof(host_num));
@@ -17,7 +27,7 @@ TEST(ByteOrder, compare_with_htons)
 
 TEST(ByteOrder, compare_with_htonl)
 {
-  for(uint32_t host_num = 0; host_num < 4000000000; host_num += 1299827) { 
+  for (uint32_t host_num = 0; host_num < 4000000000; host_num += 1299827) {
     uint32_t net_num = htonl(host_num);
     uint32_t memcpy_num = 0;
     um7::memcpy_network(&memcpy_num, &host_num, sizeof(host_num));
@@ -29,7 +39,7 @@ TEST(Accessor, basic_int)
 {
   um7::Registers r;
   r.write_raw(5, "\x01\x02\x03\x04\x05\x06");
-  
+
   um7::Accessor<uint16_t> u16(&r, 5, 3);
   EXPECT_EQ(0x0102, u16.get(0));
   EXPECT_EQ(0x0304, u16.get(1));
@@ -77,17 +87,16 @@ TEST(Accessor, set_float)
   r.mag_bias.set_scaled(2, 0.555);
 
   float check;
-  um7::memcpy_network(&check, (float*)r.mag_bias.raw(), 4);
+  um7::memcpy_network(&check, (float *)r.mag_bias.raw(), 4);
   EXPECT_FLOAT_EQ(0.123, check);
-  um7::memcpy_network(&check, (float*)r.mag_bias.raw() + 1, 4);
+  um7::memcpy_network(&check, (float *)r.mag_bias.raw() + 1, 4);
   EXPECT_FLOAT_EQ(0.987, check);
-  um7::memcpy_network(&check, (float*)r.mag_bias.raw() + 2, 4);
+  um7::memcpy_network(&check, (float *)r.mag_bias.raw() + 2, 4);
   EXPECT_FLOAT_EQ(0.555, check);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
-testing::InitGoogleTest(&argc, argv);
-return RUN_ALL_TESTS();
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
-

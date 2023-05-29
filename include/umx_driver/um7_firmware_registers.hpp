@@ -1,4 +1,4 @@
- /**
+/**
  *  \file
  *  \brief   Copied directly from the UM7 version of the UM6_config.h file, available online here:
  *           http://sourceforge.net/p/um6firmware/code/34/tree/trunk/UM6%20Firmware/UM6_config.h#l14
@@ -8,19 +8,27 @@
  *  \maintainer  Alex Brown  rbirac@cox.net
  */
 
+// Copyright (c) 2015, Alex Brown
+
+#ifndef UMX_DRIVER__UM7_FIRMWARE_REGISTERS_HPP_
+#define UMX_DRIVER__UM7_FIRMWARE_REGISTERS_HPP_
+
 
 // Define the firmware revision
 #define  UM7_FIRMWARE_REVISION    (('U' << 24) | ('7' << 16) | ('1' << 8) | 'C')
 
-// CONFIG_ARRAY_SIZE and DATA_ARRAY_SIZE specify the number of 32 bit configuration and data registers used by the firmware
-// (Note: The term "register" is used loosely here.  These "registers" are not actually registers in the same sense of a
-// microcontroller register.  They are simply index locations into arrays stored in global memory.  Data and configuration
-// parameters are stored in arrays because it allows a common communication protocol to be used to access all data and
-// configuration.  The software communicating with the sensor needs only specify the register address, and the communication
-// software running on the sensor knows exactly where to find it - it needn't know what the data is.  The software communicatin
-// with the sensor, on the other hand, needs to know what it is asking for (naturally...)
-// This setup makes it easy to make more data immediately available when needed - simply increase the array size, add code in
-// the firmware that writes data to the new array location, and then make updates to the firmware definition on the PC side.
+// CONFIG_ARRAY_SIZE and DATA_ARRAY_SIZE specify the number of 32 bit configuration and data
+// registers used by the firmware
+// (Note: The term "register" is used loosely here.  These "registers" are not actually registers
+// in the same sense of a microcontroller register.  They are simply index locations into arrays
+// stored in global memory.  Data and configuration parameters are stored in arrays because it
+// allows a common communication protocol to be used to access all data and configuration.  The
+// software communicating with the sensor needs only specify the register address, and the
+// communication software running on the sensor knows exactly where to find it - it needn't know
+// what the data is.  The software communication with the sensor, on the other hand, needs to know
+// what it is asking for (naturally...) This setup makes it easy to make more data immediately
+// available when needed - simply increase the array size, add code in the firmware that writes
+// data to the new array location, and then make updates to the firmware definition on the PC side.
 #define CONFIG_ARRAY_SIZE    27
 #define DATA_ARRAY_SIZE      52
 #define COMMAND_COUNT        10
@@ -204,7 +212,9 @@
 #define HEALTH_HDOP_START            16  // Lowest-order bit starts at 16
 #define HEALTH_SATS_IN_VIEW_MASK   0x3F
 #define HEALTH_SATS_IN_VIEW_START    10
-#define HEALTH_COM_OVERFLOW    (1 << 8)  // Set when the sensor was unable to transmit all the requested data
+
+// Set when the sensor was unable to transmit all the requested data
+#define HEALTH_COM_OVERFLOW    (1 << 8)
 #define HEALTH_MAG_NORM        (1 << 5)
 #define HEALTH_ACCEL_NORM      (1 << 4)
 #define HEALTH_ACCEL           (1 << 3)
@@ -215,12 +225,18 @@
 // Definition of packet address for COM error codes
 #define CHR_BAD_CHECKSUM        253  // Sent if the module receives a packet with a bad checksum
 #define CHR_UNKNOWN_ADDRESS     254  // Sent if the module receives a packet with an unknown address
-#define CHR_INVALID_BATCH_SIZE  255  // Sent if a requested batch read or write operation would go beyond the bounds of the config or data array
+
+// Sent if a requested batch read or write operation would go beyond the bounds of the
+// config or data array
+#define CHR_INVALID_BATCH_SIZE  255
 
 // Command addresses
-#define CHR_GET_FW_VERSION     (COMMAND_START_ADDRESS + 0)  // Causes the device to report the firmware revision
-#define CHR_FLASH_COMMIT       (COMMAND_START_ADDRESS + 1)  // Causes the device to write all configuration values to FLASH
-#define CHR_RESET_TO_FACTORY   (COMMAND_START_ADDRESS + 2)  // Causes the UM6 to load default factory settings
+// Causes the device to report the firmware revision
+#define CHR_GET_FW_VERSION     (COMMAND_START_ADDRESS + 0)
+// Causes the device to write all configuration values to FLASH
+#define CHR_FLASH_COMMIT       (COMMAND_START_ADDRESS + 1)
+// Causes the UM6 to load default factory settings
+#define CHR_RESET_TO_FACTORY   (COMMAND_START_ADDRESS + 2)
 #define CHR_ZERO_GYROS         (COMMAND_START_ADDRESS + 3)
 #define CHR_SET_HOME_POSITION  (COMMAND_START_ADDRESS + 4)
 #define CHR_FACTORY_COMMIT     (COMMAND_START_ADDRESS + 5)
@@ -248,14 +264,14 @@
 #define PRESSURE_ZERO_SAMPLES  250
 #define AIRSPEED_ZERO_SAMPLES  500
 
-#define PI             3.14159265f
-#define PIx2           6.28318530f
-#define PId2           1.57079633f
-#define GRAVITY           9.80665f
-#define GRAVITYx2         19.6133f
-#define GRAVITYd2        4.903325f
-#define RAW_TO_MBAR  (1.0f/4096.0f)
-#define KPA_PER_VOLT          1.0f
+#define PI               3.14159265f
+#define PIx2             6.28318530f
+#define PId2             1.57079633f
+#define GRAVITY             9.80665f
+#define GRAVITYx2           19.6133f
+#define GRAVITYd2          4.903325f
+#define RAW_TO_MBAR  (1.0f / 4096.0f)
+#define KPA_PER_VOLT            1.0f
 
 #define  CHR_USE_CONFIG_ADDRESS     0
 #define  CHR_USE_FACTORY_ADDRESS    1
@@ -266,25 +282,27 @@
 #define FACTORY_FLASH_ADDRESS  (uint32_t)0x0800E000
 
 // Macro for determining whether FLASH has been initialized
-#define FGET_FLASH_UNINITIALIZED()    ((uint32_t)( *(__IO uint32_t*)(FLASH_START_ADDRESS) ) == 0xFFFFFFFF)
-#define FGET_FACTORY_UNINITIALIZED()  ((uint32_t)( *(__IO uint32_t*)(FACTORY_FLASH_ADDRESS) ) == 0xFFFFFFFF)
+#define FGET_FLASH_UNINITIALIZED() ((uint32_t)(*(__IO uint32_t *)(FLASH_START_ADDRESS)) == \
+  0xFFFFFFFF)
+#define FGET_FACTORY_UNINITIALIZED() ((uint32_t)(*(__IO uint32_t *)(FACTORY_FLASH_ADDRESS)) == \
+  0xFFFFFFFF)
 
 #define GYRO_ZERO_SAMPLE_SIZE  500
 
 typedef struct __CHR_config
 {
-  union
-  {
+  union {
     uint32_t r[CONFIG_ARRAY_SIZE];
-    float    f[CONFIG_ARRAY_SIZE];
+    float f[CONFIG_ARRAY_SIZE];
   };
 } CHR_config;
 
 typedef struct __CHR_data
 {
-  union
-  {
+  union {
     uint32_t r[DATA_ARRAY_SIZE];
-    float    f[DATA_ARRAY_SIZE];
+    float f[DATA_ARRAY_SIZE];
   };
 } CHR_data;
+
+#endif  // UMX_DRIVER__UM7_FIRMWARE_REGISTERS_HPP_

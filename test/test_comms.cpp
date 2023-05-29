@@ -1,5 +1,15 @@
-#include "umx_driver/um7_comms.h"
-#include "umx_driver/um7_registers.h"
+/**
+ *
+ *  \file
+ *  \brief      Comms test code for the umx_driver
+ *  \author     Mike Purvis <mpurvis@clearpathrobotics.com>
+ *  \author     Hilary Luo <hluo@clearpathrobotics.com>
+ *  \copyright  Copyright (c) 2023, Clearpath Robotics, Inc.
+ *
+ */
+
+#include "umx_driver/um7_comms.hpp"
+#include "umx_driver/um7_registers.hpp"
 #include "serial/serial.h"
 #include <gtest/gtest.h>
 #include <fcntl.h>
@@ -15,7 +25,7 @@ protected:
    */
   virtual void SetUp()
   {
-    ASSERT_NE(-1, master_fd = posix_openpt( O_RDWR | O_NOCTTY | O_NDELAY ));
+    ASSERT_NE(-1, master_fd = posix_openpt(O_RDWR | O_NOCTTY | O_NDELAY));
     ASSERT_NE(-1, grantpt(master_fd));
     ASSERT_NE(-1, unlockpt(master_fd));
     ASSERT_TRUE((ser_name = ptsname(master_fd)) != NULL);
@@ -24,7 +34,7 @@ protected:
     ASSERT_TRUE(serial_.isOpen()) << "Couldn't open Serial connection to pseudoterminal.";
   }
 
-  void write_serial(const std::string& msg)
+  void write_serial(const std::string & msg)
   {
     write(master_fd, msg.c_str(), msg.length());
   }
@@ -39,12 +49,12 @@ protected:
 
 private:
   int master_fd;
-  char* ser_name;
+  char * ser_name;
 };
 
 TEST_F(FakeSerial, basic_message_rx)
 {
-  // Send message from device which should write four bytes to the raw magnetometer's first register.
+  // Send message from device which should write four bytes to the raw magnetometer's first register
   std::string msg(um7::Comms::message(DREG_MAG_RAW_XY, std::string("\x1\x2\x3\x4")));
   write_serial(msg);
 
@@ -62,7 +72,8 @@ TEST_F(FakeSerial, batch_message_rx)
 
   um7::Comms sensor(&serial_);
   um7::Registers registers;
-  ASSERT_EQ(DREG_ACCEL_RAW_XY, sensor.receive(&registers)) << "Didn't return ID of arriving message.";
+  ASSERT_EQ(
+    DREG_ACCEL_RAW_XY, sensor.receive(&registers)) << "Didn't return ID of arriving message.";
   EXPECT_EQ(0x0506, registers.accel_raw.get(0));
   EXPECT_EQ(0x0708, registers.accel_raw.get(1));
   EXPECT_EQ(0x090a, registers.accel_raw.get(2));
@@ -88,7 +99,9 @@ TEST_F(FakeSerial, garbage_bytes_preceeding_message_rx)
   write_serial(msg);
 
   um7::Comms sensor(&serial_);
-  EXPECT_EQ(CONFIG_REG_START_ADDRESS, sensor.receive(NULL)) << "Didn't handle garbage prepended to message.";
+  EXPECT_EQ(
+    CONFIG_REG_START_ADDRESS, sensor.receive(NULL))
+    << "Didn't handle garbage prepended to message.";
 }
 
 TEST_F(FakeSerial, timeout_message_rx)
@@ -96,11 +109,12 @@ TEST_F(FakeSerial, timeout_message_rx)
   std::string msg("snp\x12\x45");
   write_serial(msg);
   um7::Comms sensor(&serial_);
-  EXPECT_EQ(-1, sensor.receive(NULL)) << "Didn't properly time out in the face of a partial message.";
+  EXPECT_EQ(-1, sensor.receive(NULL))
+    << "Didn't properly time out in the face of a partial message.";
 }
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
-testing::InitGoogleTest(&argc, argv);
-return RUN_ALL_TESTS();
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
