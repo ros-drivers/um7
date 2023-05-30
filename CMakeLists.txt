@@ -84,9 +84,80 @@ install(TARGETS um7_driver
 ## Testing ##
 #############
 
+
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+
+  ament_add_gtest(um6_comms_test
+      test/um6_test_comms.cpp
+  )
+
+  target_sources(um6_comms_test
+    PRIVATE
+    src/um6_registers.cpp
+    src/um6_comms.cpp
+  )
+
+  ament_target_dependencies(um6_comms_test
+    rclcpp
+    serial
+  )
+
+  ament_add_gtest(um6_register_test
+      test/um6_test_registers.cpp
+  )
+
+  target_sources(um6_register_test
+    PRIVATE
+    src/um6_registers.cpp
+  )
+
+  ament_target_dependencies(um6_register_test
+    rclcpp
+  )
+
+  ament_add_gtest(um7_comms_test
+      test/um7_test_comms.cpp
+  )
+
+  target_sources(um7_comms_test
+    PRIVATE
+    src/um7_registers.cpp
+    src/um7_comms.cpp
+  )
+
+  ament_target_dependencies(um7_comms_test
+    rclcpp
+    serial
+  )
+
+  ament_add_gtest(um7_register_test
+      test/um7_test_registers.cpp
+  )
+
+  target_sources(um7_register_test
+    PRIVATE
+    src/um7_registers.cpp
+  )
+
+  ament_target_dependencies(um7_register_test
+    rclcpp
+  )
+
+  install(TARGETS um6_comms_test
+    DESTINATION test/${PROJECT_NAME})
+
+  install(TARGETS um6_register_test
+    DESTINATION test/${PROJECT_NAME})
+
+  install(TARGETS um7_comms_test
+    DESTINATION test/${PROJECT_NAME})
+
+  install(TARGETS um7_register_test
+    DESTINATION test/${PROJECT_NAME})
+
 endif()
 
 ament_package()
