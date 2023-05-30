@@ -12,7 +12,7 @@ jobs:
         with:
           repository: RoverRobotics-forks/serial-ros2
           ref: master
-      - uses: ros-tooling/setup-ros@v0.3
+      - uses: ros-tooling/setup-ros@v0.6
         with:
           required-ros-distributions: humble
       - uses: ros-tooling/action-ros-ci@v0.3
