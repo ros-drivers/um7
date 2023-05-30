@@ -8,10 +8,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/checkout@v3
-        with:
-          repository: RoverRobotics-forks/serial-ros2
-          ref: master
       - uses: ros-tooling/setup-ros@v0.6
         with:
           required-ros-distributions: humble
@@ -20,6 +16,5 @@ jobs:
         with:
           target-ros2-distro: humble
           import-token: ${{ secrets.GITHUB_TOKEN }}
-          package-name:
-            serial
-            umx_driver
+          package-name: umx_driver
+          vcs-repo-file-url: depends.repos
