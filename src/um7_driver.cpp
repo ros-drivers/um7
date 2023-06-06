@@ -42,7 +42,7 @@
 
 #include "umx_driver/um7_driver.hpp"
 
-const char VERSION[10] = "0.0.1";   // um7_driver version
+const char VERSION[10] = "0.0.7";   // um7_driver version
 
 // Don't try to be too clever. Arrival of this message triggers
 // us to publish everything we have.
