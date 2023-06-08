@@ -1,29 +1,36 @@
 <?xml version="1.0"?>
-<package format="2">
-  <name>um7</name>
+<package format="3">
+  <name>umx_driver</name>
   <version>0.0.7</version>
-  <description>The um7 package provides a C++ implementation of the CH Robotics serial protocol, and a
-    corresponding ROS node for publishing standard ROS orientation topics from a UM7.
-  </description>
+  <description>The umx_driver package provides a C++ implementation of the CH Robotics serial protocol, and a
+    corresponding ROS 2 node for publishing standard ROS orientation topics from a UM6 or UM7.</description>
 
   <maintainer email="dgmiller@ncsu.edu">Daniel Miller</maintainer>
   <maintainer email="tbaltovski@clearpathrobotics.com">Tony Baltovski</maintainer>  
   <author email="mpurvis@clearpathrobotics.com">Mike Purvis</author>
   <author email="rbirac@cox.net">Alex Brown</author>
+  <author email="hluo@clearpathrobotics.com">Hilary Luo</author>
+
+  <license>BSD-3-Clause</license>
+
+  <url type="website">http://ros.org/wiki/um7</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
   
-  <license>BSD</license>
-
-  <!-- <url type="website">http://ros.org/wiki/um7</url> -->
-
-  <buildtool_depend>catkin</buildtool_depend>
-
-  <depend>serial</depend>
-  <depend>roscpp</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
+  <depend>serial</depend>
+  <depend>std_msgs</depend>
 
-  <build_depend>message_generation</build_depend>
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
-  <exec_depend>message_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
-  <test_depend>roslint</test_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

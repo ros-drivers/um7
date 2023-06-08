@@ -1,0 +1,20 @@
+name: umx_driver_ci
+
+on: [push, pull_request]
+
+jobs:
+  umx_driver_humble_ci:
+    name: Humble
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ros-tooling/setup-ros@v0.6
+        with:
+          required-ros-distributions: humble
+      - uses: ros-tooling/action-ros-ci@v0.3
+        id: action_ros_ci_step
+        with:
+          target-ros2-distro: humble
+          import-token: ${{ secrets.GITHUB_TOKEN }}
+          package-name: umx_driver
+          vcs-repo-file-url: depends.repos
