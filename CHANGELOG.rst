@@ -2,6 +2,27 @@
 Changelog for package um7
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Reverted versioning to continue where it left off
+* Add instructions and update log for ros 2 version
+* Fixed inclusion of serial library in CI
+* Updated CI setup-ros tooling version
+* Add github ci
+* Setup custom tests
+* Linting changes
+* Updated test files
+* Updating for ROS 2 Linting
+* Updating to hpp file naming for linting
+* Added UM6_driver
+* Optimized for speed
+* Update structure for separateUM6 and 7 nodes
+* More detailed error message
+* Setup for ROS 2 and UM7
+* folder structure for new executable name
+* folder structure for new package name
+* Contributors: Hilary Luo
+
 0.0.7 (2022-04-13)
 ------------------
 * Add output in robot frame option (`#26 <https://github.com/ros-drivers/um7/issues/26>`_)
