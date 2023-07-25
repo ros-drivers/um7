@@ -2,8 +2,8 @@
 Changelog for package um7
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2023-07-25)
+------------------
 * Reverted versioning to continue where it left off
 * Add instructions and update log for ros 2 version
 * Fixed inclusion of serial library in CI
