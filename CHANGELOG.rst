@@ -2,6 +2,11 @@
 Changelog for package um7
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added boost as a build_depend.
+* Contributors: Tony Baltovski
+
 1.0.0 (2023-07-25)
 ------------------
 * Reverted versioning to continue where it left off
